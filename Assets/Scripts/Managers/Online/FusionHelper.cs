@@ -54,19 +54,10 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
-        Debug.Log("[FusionHelper] Disconnected from server detected");
-
-        if (runner != null)
-        {
-            Debug.Log("[FusionHelper] Shutting down after disconnection...");
-            _ = runner.Shutdown();
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ExitSession();
-        }
+        Debug.Log("Host Disconnected");
+        OnDisconnectedEvent?.Raise(default, runner);
     }
+
 
 
     public void OnConnectedToServer(NetworkRunner runner) { }

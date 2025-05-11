@@ -31,7 +31,6 @@ public class GameManager : MonoBehaviour
     public LevelManager LevelManager;
     [SerializeField] private GameObject exitCanvas;
 
-    // Optional: store player-specific data
     private Dictionary<PlayerRef, PlayerData> _playerData = new();
 
     private void Awake()
@@ -107,24 +106,29 @@ public class GameManager : MonoBehaviour
     {
         if (_playerData.TryGetValue(player, out var data))
         {
-            // Despawn PlayerData
-            if (data.Instance && data.Instance.IsValid) runner.Despawn(data.Instance);
-            if (data.Object && data.Object.IsValid) runner.Despawn(data.Object);
+            if (runner.IsServer)
+            {
+                foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
+                {
+                    if (controller.Object != null && controller.Object.InputAuthority == player)
+                    {
+                        runner.Despawn(controller.Object);
+                    }
+                }
+            }
 
-            // Despawn LobbyPlayerController
-            if (data.LobbyPlayerController && data.LobbyPlayerController.IsValid)
-                runner.Despawn(data.LobbyPlayerController);
-
+            if (data.Instance) runner.Despawn(data.Instance);
+            if (data.Object) runner.Despawn(data.Object);
             _playerData.Remove(player);
         }
     }
+
 
     private void OnDisconnected(PlayerRef _, NetworkRunner runner)
     {
         Debug.Log("[GameManager] Detected disconnection, exiting session...");
         ExitSession();
     }
-
 
 
     public void OnRunnerShutdown(PlayerRef _, NetworkRunner runner)
@@ -154,14 +158,20 @@ public class GameManager : MonoBehaviour
         _playerData.Clear();
     }
 
+
     public void ExitSession()
     {
-        _ = ShutdownRunner();
+        Debug.Log("[GameManager] Exiting session and loading Main Menu immediately...");
+
         LevelManager?.ResetLoadedScene();
-        SceneManager.LoadScene(0); // Main Menu
+        SceneManager.LoadScene(0);
+
         if (exitCanvas != null)
             exitCanvas.SetActive(false);
+
+        _ = ShutdownRunner(); // shutdown quietly in background
     }
+
 
     public void ExitGame()
     {

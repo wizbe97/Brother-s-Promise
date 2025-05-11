@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System.Collections;
 using Fusion;
+using System.Linq;
 
 public class OnlineLobbyPlayerController : NetworkBehaviour
 {
@@ -34,13 +35,11 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
             playerData.LobbyPlayerController = GetComponent<NetworkObject>();
         }
 
-        StartCoroutine(SetInitialParent());
+        SetInitialParent();
     }
 
-    private IEnumerator SetInitialParent()
+    private void SetInitialParent()
     {
-        yield return null; // wait one frame so LobbyCanvas assigns the images
-
         if (imageBrother1 == null || imageBrother2 == null)
         {
             var lobbyCanvas = FindObjectOfType<LobbyCanvas>();
@@ -55,9 +54,16 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         {
             transform.SetParent(imageBrother1, false);
 
-            // Always offset based on PlayerId
+            // Find this player's real index
+            int playerIndex = 0;
+            foreach (var player in Runner.ActivePlayers)
+            {
+                if (player == Object.InputAuthority)
+                    break;
+                playerIndex++;
+            }
+
             float verticalSpacing = -200f;
-            int playerIndex = Object.InputAuthority.PlayerId - 1; // PlayerId starts at 1, so subtract 1
             transform.localPosition = new Vector3(0f, playerIndex * verticalSpacing, 0f);
         }
     }

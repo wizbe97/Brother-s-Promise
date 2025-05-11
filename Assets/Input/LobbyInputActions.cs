@@ -28,15 +28,6 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
             ""id"": ""aecb9ded-c269-4234-bdd1-7fb51e764cb6"",
             ""actions"": [
                 {
-                    ""name"": ""SwapCharacter"",
-                    ""type"": ""Value"",
-                    ""id"": ""e839aebf-b07b-4ba3-a9a9-2a2c595aa6a2"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
                     ""name"": ""ReadyUp"",
                     ""type"": ""Button"",
                     ""id"": ""d3d749a2-de8c-462e-8a1f-453f0836fb1e"",
@@ -49,6 +40,24 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""CancelExitLobby"",
                     ""type"": ""Button"",
                     ""id"": ""0ec0e154-c282-473d-9e91-b715a88f5b5b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MoveLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""d33a53cd-524a-4e22-836a-f208188394ba"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MoveRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""3798c6f0-7548-450e-a084-73e71420416c"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -90,83 +99,6 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""A/D"",
-                    ""id"": ""d8e9d3a2-0dc2-4706-b84e-9c02bd4c5816"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""6889067c-1098-4320-954f-4fbd5ff42665"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""8f1d1aa7-f73b-4964-b974-ce75e54704cb"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Arrow Keys"",
-                    ""id"": ""4498f90c-3b5d-4896-914d-8da0daaf5028"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""2de8cbfa-8cd1-44e0-937d-57a9aadb1c9a"",
-                    ""path"": ""<Keyboard>/leftArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""4d2a36fb-be21-4c2b-a9c1-8c64c350fdda"",
-                    ""path"": ""<Keyboard>/rightArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""8c0e1d0f-f3d6-43ba-9aa5-db493d524722"",
-                    ""path"": ""<Gamepad>/leftStick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""SwapCharacter"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
                     ""name"": """",
                     ""id"": ""73d931e8-4cdc-410d-9a5e-69e7811a912e"",
                     ""path"": ""<Keyboard>/escape"",
@@ -198,6 +130,94 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""CancelExitLobby"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""abb83929-c2bd-4eb7-abf1-a4ceac19adc5"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b7d22925-cf8e-46d9-931f-cbf1df4fdf03"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""94510cd8-a126-4eef-b2c8-e9f67bb44c5d"",
+                    ""path"": ""<Gamepad>/leftStick/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e9efbdbf-ed7a-4dac-832d-79709625cbed"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1d9b08cf-4d5b-4171-a7dd-6758bd1be4ed"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""acdbeebb-0e25-4056-8b56-306009048e08"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""10809799-6bae-4ad4-b43a-bbd3fdd8be94"",
+                    ""path"": ""<Gamepad>/leftStick/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bd9b6c80-1aab-48fe-a6a1-7c25e317534c"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -206,9 +226,10 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
 }");
         // Lobby
         m_Lobby = asset.FindActionMap("Lobby", throwIfNotFound: true);
-        m_Lobby_SwapCharacter = m_Lobby.FindAction("SwapCharacter", throwIfNotFound: true);
         m_Lobby_ReadyUp = m_Lobby.FindAction("ReadyUp", throwIfNotFound: true);
         m_Lobby_CancelExitLobby = m_Lobby.FindAction("CancelExitLobby", throwIfNotFound: true);
+        m_Lobby_MoveLeft = m_Lobby.FindAction("MoveLeft", throwIfNotFound: true);
+        m_Lobby_MoveRight = m_Lobby.FindAction("MoveRight", throwIfNotFound: true);
     }
 
     ~@LobbyInputActions()
@@ -275,16 +296,18 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
     // Lobby
     private readonly InputActionMap m_Lobby;
     private List<ILobbyActions> m_LobbyActionsCallbackInterfaces = new List<ILobbyActions>();
-    private readonly InputAction m_Lobby_SwapCharacter;
     private readonly InputAction m_Lobby_ReadyUp;
     private readonly InputAction m_Lobby_CancelExitLobby;
+    private readonly InputAction m_Lobby_MoveLeft;
+    private readonly InputAction m_Lobby_MoveRight;
     public struct LobbyActions
     {
         private @LobbyInputActions m_Wrapper;
         public LobbyActions(@LobbyInputActions wrapper) { m_Wrapper = wrapper; }
-        public InputAction @SwapCharacter => m_Wrapper.m_Lobby_SwapCharacter;
         public InputAction @ReadyUp => m_Wrapper.m_Lobby_ReadyUp;
         public InputAction @CancelExitLobby => m_Wrapper.m_Lobby_CancelExitLobby;
+        public InputAction @MoveLeft => m_Wrapper.m_Lobby_MoveLeft;
+        public InputAction @MoveRight => m_Wrapper.m_Lobby_MoveRight;
         public InputActionMap Get() { return m_Wrapper.m_Lobby; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -294,28 +317,34 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_LobbyActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_LobbyActionsCallbackInterfaces.Add(instance);
-            @SwapCharacter.started += instance.OnSwapCharacter;
-            @SwapCharacter.performed += instance.OnSwapCharacter;
-            @SwapCharacter.canceled += instance.OnSwapCharacter;
             @ReadyUp.started += instance.OnReadyUp;
             @ReadyUp.performed += instance.OnReadyUp;
             @ReadyUp.canceled += instance.OnReadyUp;
             @CancelExitLobby.started += instance.OnCancelExitLobby;
             @CancelExitLobby.performed += instance.OnCancelExitLobby;
             @CancelExitLobby.canceled += instance.OnCancelExitLobby;
+            @MoveLeft.started += instance.OnMoveLeft;
+            @MoveLeft.performed += instance.OnMoveLeft;
+            @MoveLeft.canceled += instance.OnMoveLeft;
+            @MoveRight.started += instance.OnMoveRight;
+            @MoveRight.performed += instance.OnMoveRight;
+            @MoveRight.canceled += instance.OnMoveRight;
         }
 
         private void UnregisterCallbacks(ILobbyActions instance)
         {
-            @SwapCharacter.started -= instance.OnSwapCharacter;
-            @SwapCharacter.performed -= instance.OnSwapCharacter;
-            @SwapCharacter.canceled -= instance.OnSwapCharacter;
             @ReadyUp.started -= instance.OnReadyUp;
             @ReadyUp.performed -= instance.OnReadyUp;
             @ReadyUp.canceled -= instance.OnReadyUp;
             @CancelExitLobby.started -= instance.OnCancelExitLobby;
             @CancelExitLobby.performed -= instance.OnCancelExitLobby;
             @CancelExitLobby.canceled -= instance.OnCancelExitLobby;
+            @MoveLeft.started -= instance.OnMoveLeft;
+            @MoveLeft.performed -= instance.OnMoveLeft;
+            @MoveLeft.canceled -= instance.OnMoveLeft;
+            @MoveRight.started -= instance.OnMoveRight;
+            @MoveRight.performed -= instance.OnMoveRight;
+            @MoveRight.canceled -= instance.OnMoveRight;
         }
 
         public void RemoveCallbacks(ILobbyActions instance)
@@ -335,8 +364,9 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
     public LobbyActions @Lobby => new LobbyActions(this);
     public interface ILobbyActions
     {
-        void OnSwapCharacter(InputAction.CallbackContext context);
         void OnReadyUp(InputAction.CallbackContext context);
         void OnCancelExitLobby(InputAction.CallbackContext context);
+        void OnMoveLeft(InputAction.CallbackContext context);
+        void OnMoveRight(InputAction.CallbackContext context);
     }
 }

@@ -20,6 +20,7 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
     private LobbyInputActions inputActions;
     private bool hasInputAuthority;
 
+
     public override void Spawned()
     {
         hasInputAuthority = Object.HasInputAuthority;
@@ -36,6 +37,7 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         }
 
         SetInitialParent();
+        playerNameText.text = playerData.DisplayName.ToString();
     }
 
     private void SetInitialParent()
@@ -77,37 +79,33 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
     private void OnEnable()
     {
         inputActions.Lobby.Enable();
-        inputActions.Lobby.SwapCharacter.performed += OnSwapCharacter;
+        inputActions.Lobby.MoveLeft.performed += ctx => OnMoveLeft();
+        inputActions.Lobby.MoveRight.performed += ctx => OnMoveRight();
         inputActions.Lobby.ReadyUp.performed += OnReadyUp;
     }
 
     private void OnDisable()
     {
-        inputActions.Lobby.SwapCharacter.performed -= OnSwapCharacter;
+        inputActions.Lobby.MoveLeft.performed -= ctx => OnMoveLeft();
+        inputActions.Lobby.MoveRight.performed -= ctx => OnMoveRight();
         inputActions.Lobby.ReadyUp.performed -= OnReadyUp;
         inputActions.Lobby.Disable();
     }
 
-    private void Update()
-    {
-        if (playerData == null) return;
-
-        playerNameText.text = playerData.DisplayName.ToString();
-        UpdateVisualPosition();
-        UpdateReadyVisual();
-    }
-
-    private void OnSwapCharacter(InputAction.CallbackContext ctx)
+    private void OnMoveLeft()
     {
         if (!hasInputAuthority || playerData == null || playerData.IsReady) return;
-
-        Vector2 input = ctx.ReadValue<Vector2>();
-        if (Mathf.Abs(input.x) > 0.5f)
-        {
-            int newCharacter = playerData.SelectedCharacter == 0 ? 1 : 0;
-            playerData.RPC_SetCharacter(newCharacter);
-        }
+        playerData.RPC_SetCharacter(0);
+        UpdateVisualPosition();
     }
+
+    private void OnMoveRight()
+    {
+        if (!hasInputAuthority || playerData == null || playerData.IsReady) return;
+        playerData.RPC_SetCharacter(1);
+        UpdateVisualPosition();
+    }
+
 
     private void OnReadyUp(InputAction.CallbackContext ctx)
     {
@@ -115,6 +113,9 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
 
         bool nextReadyState = !playerData.IsReady;
         playerData.RPC_SetReady(nextReadyState);
+
+        UpdateVisualPosition();
+        UpdateReadyVisual();
     }
 
     private void UpdateVisualPosition()
@@ -126,10 +127,9 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         {
             Vector3 currentLocalPosition = transform.localPosition;
             transform.SetParent(targetParent, false);
-            transform.localPosition = new Vector3(0f, currentLocalPosition.y, 0f); // Keep same Y offset after swap
+            transform.localPosition = new Vector3(0f, currentLocalPosition.y, 0f); 
         }
     }
-
 
     private void UpdateReadyVisual()
     {

@@ -10,18 +10,25 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
 {
     public static NetworkRunner LocalRunner;
     public NetworkPrefabRef PlayerDataNO;
+    public NetworkPrefabRef LobbyPlayerControllerNO;
 
     public FusionEvent OnPlayerJoinedEvent;
     public FusionEvent OnPlayerLeftEvent;
-    public FusionEvent OnShutdownEvent;
+    public FusionEvent OnRunnerShutDownEvent;
     public FusionEvent OnDisconnectedEvent;
+
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
         {
-            Debug.Log($"[FusionHelper] Spawning PlayerData for player {player}");
+            Debug.Log($"[FusionHelper] Spawning PlayerData and LobbyPlayerController for player {player}");
+
+            // Spawn networked PlayerData
             runner.Spawn(PlayerDataNO, inputAuthority: player);
+
+            // Spawn networked LobbyPlayerController
+            runner.Spawn(LobbyPlayerControllerNO, inputAuthority: player);
         }
 
         if (runner.LocalPlayer == player)
@@ -34,15 +41,33 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
     }
 
 
-
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) =>
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        Debug.Log("[FusionHelper] Shutdown detected");
         OnPlayerLeftEvent?.Raise(player, runner);
+    }
+
+
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason reason) =>
-        OnShutdownEvent?.Raise(default, runner);
+        OnRunnerShutDownEvent?.Raise(default, runner);
 
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) =>
-        OnDisconnectedEvent?.Raise(default, runner);
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+    {
+        Debug.Log("[FusionHelper] Disconnected from server detected");
+
+        if (runner != null)
+        {
+            Debug.Log("[FusionHelper] Shutting down after disconnection...");
+            _ = runner.Shutdown();
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ExitSession();
+        }
+    }
+
 
     public void OnConnectedToServer(NetworkRunner runner) { }
 

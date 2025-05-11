@@ -5,14 +5,21 @@ using UnityEngine.SceneManagement;
 using Fusion;
 using FusionUtilsEvents;
 
-public class GameManager : MonoBehaviour {
+
+public class GameManager : MonoBehaviour
+{
     public static GameManager Instance;
 
     [Header("Events")]
     public FusionEvent OnPlayerLeftEvent;
     public FusionEvent OnRunnerShutDownEvent;
+    public FusionEvent OnDisconnectedEvent;
 
-    public enum GameState {
+    public NetworkRunner runner;
+
+
+    public enum GameState
+    {
         Lobby,
         Playing,
         Loading
@@ -27,8 +34,10 @@ public class GameManager : MonoBehaviour {
     // Optional: store player-specific data
     private Dictionary<PlayerRef, PlayerData> _playerData = new();
 
-    private void Awake() {
-        if (Instance != null && Instance != this) {
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
             Destroy(this.transform.parent ? this.transform.parent.gameObject : this.gameObject);
             return;
         }
@@ -37,60 +46,107 @@ public class GameManager : MonoBehaviour {
         DontDestroyOnLoad(transform.parent ? transform.parent.gameObject : gameObject);
     }
 
-    private void OnEnable() {
+    private void OnEnable()
+    {
         OnPlayerLeftEvent?.RegisterResponse(PlayerDisconnected);
         OnRunnerShutDownEvent?.RegisterResponse(OnRunnerShutdown);
+        OnDisconnectedEvent?.RegisterResponse(OnDisconnected);
+
     }
 
-    private void OnDisable() {
+    private void OnDisable()
+    {
         OnPlayerLeftEvent?.RemoveResponse(PlayerDisconnected);
         OnRunnerShutDownEvent?.RemoveResponse(OnRunnerShutdown);
+        OnDisconnectedEvent?.RemoveResponse(OnDisconnected);
+
     }
 
-    private void Update() {
-        if (State == GameState.Playing && Input.GetKeyDown(KeyCode.Escape)) {
-            if (exitCanvas != null) {
+    bool escaped = false;
+
+    private void Update()
+    {
+        if (State == GameState.Playing && Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (exitCanvas != null)
+            {
                 exitCanvas.SetActive(!exitCanvas.activeSelf);
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && !escaped)
+        {
+            DisconnectAndReturnToOffline();
+        }
     }
 
-    public void SetGameState(GameState state) {
+    public async void DisconnectAndReturnToOffline()
+    {
+        ExitSession();
+    }
+
+    public void SetGameState(GameState state)
+    {
         State = state;
     }
 
-    public void SetPlayerDataObject(PlayerRef player, PlayerData data) {
-        if (!_playerData.ContainsKey(player)) {
+    public void SetPlayerDataObject(PlayerRef player, PlayerData data)
+    {
+        if (!_playerData.ContainsKey(player))
+        {
             _playerData.Add(player, data);
         }
     }
 
-    public PlayerData GetPlayerData(PlayerRef player) {
+    public PlayerData GetPlayerData(PlayerRef player)
+    {
         return _playerData.TryGetValue(player, out var data) ? data : null;
     }
 
-    public void PlayerDisconnected(PlayerRef player, NetworkRunner runner) {
-        if (_playerData.TryGetValue(player, out var data)) {
-            if (data.Instance) runner.Despawn(data.Instance);
-            if (data.Object) runner.Despawn(data.Object);
+    public void PlayerDisconnected(PlayerRef player, NetworkRunner runner)
+    {
+        if (_playerData.TryGetValue(player, out var data))
+        {
+            // Despawn PlayerData
+            if (data.Instance && data.Instance.IsValid) runner.Despawn(data.Instance);
+            if (data.Object && data.Object.IsValid) runner.Despawn(data.Object);
+
+            // Despawn LobbyPlayerController
+            if (data.LobbyPlayerController && data.LobbyPlayerController.IsValid)
+                runner.Despawn(data.LobbyPlayerController);
+
             _playerData.Remove(player);
         }
     }
 
-    public void OnRunnerShutdown(PlayerRef _, NetworkRunner runner) {
+    private void OnDisconnected(PlayerRef _, NetworkRunner runner)
+    {
+        Debug.Log("[GameManager] Detected disconnection, exiting session...");
         ExitSession();
     }
 
-    public void LeaveRoom() {
+
+
+    public void OnRunnerShutdown(PlayerRef _, NetworkRunner runner)
+    {
+        ExitSession();
+    }
+
+
+    public void LeaveRoom()
+    {
         _ = LeaveRoomAsync();
     }
 
-    private async Task LeaveRoomAsync() {
+    private async Task LeaveRoomAsync()
+    {
         await ShutdownRunner();
     }
 
-    private async Task ShutdownRunner() {
-        if (FusionHelper.LocalRunner != null) {
+    private async Task ShutdownRunner()
+    {
+        if (FusionHelper.LocalRunner != null)
+        {
             await FusionHelper.LocalRunner.Shutdown();
         }
 
@@ -98,7 +154,8 @@ public class GameManager : MonoBehaviour {
         _playerData.Clear();
     }
 
-    public void ExitSession() {
+    public void ExitSession()
+    {
         _ = ShutdownRunner();
         LevelManager?.ResetLoadedScene();
         SceneManager.LoadScene(0); // Main Menu
@@ -106,7 +163,8 @@ public class GameManager : MonoBehaviour {
             exitCanvas.SetActive(false);
     }
 
-    public void ExitGame() {
+    public void ExitGame()
+    {
         _ = ShutdownRunner();
         Application.Quit();
     }

@@ -2,33 +2,42 @@ using UnityEngine;
 using Fusion;
 using FusionUtilsEvents;
 
-public class PlayerData : NetworkBehaviour {
+public class PlayerData : NetworkBehaviour
+{
     [Networked] public NetworkString<_16> DisplayName { get; set; }
     [Networked] public int SelectedCharacter { get; set; }
     [Networked] public bool IsReady { get; set; }
     [Networked] public NetworkObject Instance { get; set; }
+    [Networked] public NetworkObject LobbyPlayerController { get; set; }
+
 
     public FusionEvent OnPlayerDataSpawnedEvent;
 
     private ChangeDetector _changeDetector;
 
-    public override void Spawned() {
+    public override void Spawned()
+    {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         // Assign nickname automatically
-        if (Object.HasInputAuthority) {
+        if (Object.HasInputAuthority)
+        {
             string name = Runner.IsServer && Object.InputAuthority == Runner.LocalPlayer
                 ? "Player 1"
                 : "Player 2";
 
             RPC_SetDisplayName(name);
+
+            // Set everyone starting at Brother 1 (index 0)
+            RPC_SetCharacter(0);
         }
 
         // Set Player Object for authority mapping
         Runner.SetPlayerObject(Object.InputAuthority, Object);
 
         // Store in GameManager if this player is state authority
-        if (Object.HasStateAuthority) {
+        if (Object.HasStateAuthority)
+        {
             GameManager.Instance.SetPlayerDataObject(Object.InputAuthority, this);
         }
 
@@ -38,26 +47,33 @@ public class PlayerData : NetworkBehaviour {
         DontDestroyOnLoad(this.gameObject);
     }
 
-    public override void Render() {
-        foreach (var change in _changeDetector.DetectChanges(this)) {
-            if (change == nameof(SelectedCharacter) || change == nameof(IsReady)) {
+
+    public override void Render()
+    {
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            if (change == nameof(SelectedCharacter) || change == nameof(IsReady))
+            {
                 OnPlayerDataSpawnedEvent?.Raise(Object.InputAuthority, Runner);
             }
         }
     }
 
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
-    public void RPC_SetDisplayName(string name) {
+    public void RPC_SetDisplayName(string name)
+    {
         DisplayName = name;
     }
 
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
-    public void RPC_SetCharacter(int characterIndex) {
+    public void RPC_SetCharacter(int characterIndex)
+    {
         SelectedCharacter = characterIndex;
     }
 
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
-    public void RPC_SetReady(bool ready) {
+    public void RPC_SetReady(bool ready)
+    {
         IsReady = ready;
     }
 }

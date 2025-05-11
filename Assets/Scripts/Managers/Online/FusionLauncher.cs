@@ -1,15 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Fusion;
-using System;
-using Fusion.Sockets;
+
 
 public class FusionLauncher : MonoBehaviour
 {
     private NetworkRunner _runner;
     private ConnectionStatus _status;
+
 
     public enum ConnectionStatus
     {
@@ -28,19 +25,30 @@ public class FusionLauncher : MonoBehaviour
 
         SetConnectionStatus(ConnectionStatus.Connecting, "");
 
+        // Prevent the object from being destroyed on scene load
         DontDestroyOnLoad(gameObject);
 
-        if (_runner == null)
-            _runner = gameObject.AddComponent<NetworkRunner>();
+        // If there was a previous runner, shutdown and destroy it
+        if (_runner != null)
+        {
+            await _runner.Shutdown();
+            Destroy(_runner.gameObject);  // Make sure to destroy the old runner
+            _runner = null;  // Clear reference to the old runner
+        }
+
+        // Create a new runner instance for each launch
+        _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.name = name;
         _runner.ProvideInput = mode != GameMode.Server;
 
+        // Start the game with the new runner
         await _runner.StartGame(new StartGameArgs()
         {
             GameMode = mode,
             SessionName = room,
             SceneManager = sceneLoader
         });
+
         Debug.Log($"[FusionLauncher] Fusion started - Room: {room}, Mode: {mode}");
     }
 

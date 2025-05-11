@@ -59,6 +59,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerDataNO:
     RawGuidValue: ef45bf83fe2be9941862c1ede099a728
+  LobbyPlayerControllerNO:
+    RawGuidValue: b5e9a855f47a39349aefccf247b72789
   OnPlayerJoinedEvent: {fileID: 11400000, guid: ba2541d91e2b085458e350d205a8c247, type: 2}
   OnPlayerLeftEvent: {fileID: 11400000, guid: ef8784a6d14cbe345bfd13f26444ec96, type: 2}
   OnShutdownEvent: {fileID: 11400000, guid: 63a027828c3b26042baa8b74dbda4b62, type: 2}

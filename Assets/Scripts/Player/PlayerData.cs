@@ -32,6 +32,11 @@ public class PlayerData : NetworkBehaviour
             RPC_SetCharacter(0);
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RegisterPlayerData(Object.InputAuthority, this);
+        }
+
         // Set Player Object for authority mapping
         Runner.SetPlayerObject(Object.InputAuthority, Object);
 

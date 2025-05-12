@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     public FusionEvent OnDisconnectedEvent;
 
     public NetworkRunner runner;
-
+    private Dictionary<PlayerRef, PlayerData> _playerDatas = new();
 
     public enum GameState
     {
@@ -97,10 +97,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public PlayerData GetPlayerData(PlayerRef player)
+
+    public PlayerData GetPlayerData(PlayerRef playerRef)
     {
-        return _playerData.TryGetValue(player, out var data) ? data : null;
+        _playerDatas.TryGetValue(playerRef, out var playerData);
+        return playerData;
     }
+
+    public void RegisterPlayerData(PlayerRef playerRef, PlayerData playerData)
+    {
+        if (!_playerDatas.ContainsKey(playerRef))
+        {
+            _playerDatas.Add(playerRef, playerData);
+            Debug.Log($"[GameManager] Registered PlayerData for {playerRef}");
+        }
+    }
+
 
     public void PlayerDisconnected(PlayerRef player, NetworkRunner runner)
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObject
+public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsObject
 {
     #region References
 
@@ -78,20 +78,24 @@ public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObje
 
     private void Awake()
     {
-        if (!TryGetComponent(out _playerInput)) _playerInput = gameObject.AddComponent<PlayerInput>();
-        if (!TryGetComponent(out _constantForce)) _constantForce = gameObject.AddComponent<ConstantForce2D>();
+        _playerInput = GetComponent<PlayerInput>();
+        _constantForce = GetComponent<ConstantForce2D>();
 
         SetupCharacter();
-
         PhysicsSimulator.Instance.AddPlayer(this);
     }
 
-    private bool HasInputAuthority()
+    public override void Spawned()
     {
-        var networkObject = GetComponent<NetworkObject>();
-        return networkObject != null && networkObject.HasInputAuthority;
-    }
+        if (HasInputAuthority)
+        {
+            // IMPORTANT! Tell Fusion: this is the object that should receive input.
+            Runner.SetPlayerObject(Runner.LocalPlayer, Object);
 
+            // OPTIONAL: Force simulate physics if needed
+            Runner.SetIsSimulated(Object, true);
+        }
+    }
 
     private void OnDestroy() => PhysicsSimulator.Instance.RemovePlayer(this);
 
@@ -104,7 +108,7 @@ public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObje
     }
     public void TickUpdate(float delta, float time)
     {
-        if (!HasInputAuthority()) return;
+        if (!HasInputAuthority) return;
         _delta = delta;
         _time = time;
 
@@ -113,7 +117,7 @@ public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObje
 
     public void TickFixedUpdate(float delta)
     {
-        if (!HasInputAuthority()) return;
+        if (!HasInputAuthority) return;
         _delta = delta;
 
         if (!Active) return;

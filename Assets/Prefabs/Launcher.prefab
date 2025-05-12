@@ -64,8 +64,9 @@ MonoBehaviour:
     RawGuidValue: b5e9a855f47a39349aefccf247b72789
   OnPlayerJoinedEvent: {fileID: 11400000, guid: ba2541d91e2b085458e350d205a8c247, type: 2}
   OnPlayerLeftEvent: {fileID: 11400000, guid: ef8784a6d14cbe345bfd13f26444ec96, type: 2}
-  OnRunnerShutDownEvent: {fileID: 0}
+  OnRunnerShutDownEvent: {fileID: 11400000, guid: 63a027828c3b26042baa8b74dbda4b62, type: 2}
   OnDisconnectedEvent: {fileID: 11400000, guid: ff5a7b1fa4536ac4abd53cbb3b94a565, type: 2}
+  OnSceneLoadedEvent: {fileID: 11400000, guid: 3ee5c443c79116a4d8b29dfe880251f3, type: 2}
 --- !u!114 &-6901929393448954710
 MonoBehaviour:
   m_ObjectHideFlags: 0

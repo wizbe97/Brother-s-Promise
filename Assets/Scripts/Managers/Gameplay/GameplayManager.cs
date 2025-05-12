@@ -1,6 +1,7 @@
 using UnityEngine;
 using Fusion;
-using System.Collections.Generic;
+using FusionUtilsEvents;
+using System.Linq;
 
 public class GameplayManager : NetworkBehaviour
 {
@@ -12,12 +13,13 @@ public class GameplayManager : NetworkBehaviour
     [SerializeField] private Transform spawnPoint1;
     [SerializeField] private Transform spawnPoint2;
 
-    private Dictionary<PlayerRef, NetworkObject> spawnedPlayers = new Dictionary<PlayerRef, NetworkObject>();
+    [Header("Fusion Events")]
+    public FusionEvent OnSceneLoaded;
 
     private static GameplayManager _instance;
     public static GameplayManager Instance => _instance;
 
-    private bool _playersSpawned = false;
+    private NetworkRunner _cachedRunner;
 
     private void Awake()
     {
@@ -29,61 +31,80 @@ public class GameplayManager : NetworkBehaviour
 
         _instance = this;
         DontDestroyOnLoad(gameObject);
+
+        _cachedRunner = FusionHelper.LocalRunner;
+        if (_cachedRunner == null)
+        {
+            Debug.LogError("[GameplayManager] Failed to find LocalRunner in Awake. Spawns might fail!");
+        }
     }
 
-    public override void Spawned()
+    private void OnEnable()
     {
-        if (!Runner.IsServer) return;
-        // Don't immediately spawn here
+        OnSceneLoaded?.RegisterResponse(SceneLoaded);
     }
 
-    private void Update()
+    private void OnDisable()
     {
-        if (!Runner || _playersSpawned || !Runner.IsServer)
+        OnSceneLoaded?.RemoveResponse(SceneLoaded);
+    }
+
+    private void SceneLoaded(PlayerRef _, NetworkRunner __)
+    {
+        Debug.Log("[GameplayManager] SceneLoaded event received.");
+
+        if (_cachedRunner == null)
+        {
+            Debug.LogError("[GameplayManager] Cached runner is NULL. Cannot spawn players.");
             return;
-
-        // Wait until players are fully active and their PlayerData objects exist
-        bool allPlayersReady = true;
-
-        foreach (var player in Runner.ActivePlayers)
-        {
-            var data = GameManager.Instance.GetPlayerData(player);
-            if (data == null)
-            {
-                allPlayersReady = false;
-                break;
-            }
         }
 
-        if (allPlayersReady)
+        if (!_cachedRunner.IsServer)
         {
-            SpawnAllPlayers();
-            _playersSpawned = true;
+            Debug.Log("[GameplayManager] Not the server. Skipping player spawn.");
+            return;
         }
-    }
 
-    private void SpawnAllPlayers()
-    {
-        Debug.Log("[GameplayManager] Spawning all players...");
+        Debug.Log("[GameplayManager] Spawning players...");
 
         int index = 0;
-        foreach (var player in Runner.ActivePlayers)
+        foreach (var player in _cachedRunner.ActivePlayers)
         {
             var playerData = GameManager.Instance.GetPlayerData(player);
-            if (playerData == null) continue;
+            if (playerData == null)
+            {
+                Debug.LogWarning($"[GameplayManager] No PlayerData found for {player}. Skipping.");
+                continue;
+            }
 
-            NetworkPrefabRef prefabToSpawn = playerData.SelectedCharacter == 0 ? brother1Prefab : brother2Prefab;
-            Transform spawnPoint = index == 0 ? spawnPoint1 : spawnPoint2;
+            NetworkPrefabRef prefabToSpawn = playerData.SelectedCharacter == 0
+                ? brother1Prefab
+                : brother2Prefab;
 
-            var obj = Runner.Spawn(
+            Transform spawnPoint = GetSpawnPoint(index);
+
+            var spawnedObject = _cachedRunner.Spawn(
                 prefabToSpawn,
                 spawnPoint.position,
                 spawnPoint.rotation,
-                player // Assign input authority
+                player
             );
 
-            spawnedPlayers.Add(player, obj);
+            if (spawnedObject != null)
+            {
+                Debug.Log($"[GameplayManager] Spawned {prefabToSpawn} for {player} at {spawnPoint.position}");
+            }
+            else
+            {
+                Debug.LogError($"[GameplayManager] Failed to spawn prefab for {player}");
+            }
+
             index++;
         }
+    }
+
+    private Transform GetSpawnPoint(int index)
+    {
+        return index == 0 ? spawnPoint1 : spawnPoint2;
     }
 }

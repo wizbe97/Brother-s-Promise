@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public async void DisconnectAndReturnToOffline()
+    public void DisconnectAndReturnToOffline()
     {
         ExitSession();
     }

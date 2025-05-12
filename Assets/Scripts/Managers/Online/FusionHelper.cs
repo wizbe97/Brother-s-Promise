@@ -1,3 +1,4 @@
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +17,7 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
     public FusionEvent OnPlayerLeftEvent;
     public FusionEvent OnRunnerShutDownEvent;
     public FusionEvent OnDisconnectedEvent;
-
+    public FusionEvent OnSceneLoadedEvent;
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
@@ -40,14 +41,10 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
         OnPlayerJoinedEvent?.Raise(player, runner);
     }
 
-
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log("[FusionHelper] Shutdown detected");
         OnPlayerLeftEvent?.Raise(player, runner);
     }
-
-
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason reason) =>
         OnRunnerShutDownEvent?.Raise(default, runner);
@@ -58,17 +55,19 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
         OnDisconnectedEvent?.Raise(default, runner);
     }
 
-
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        Debug.Log("[FusionHelper] Scene Load Done");
+        OnSceneLoadedEvent?.Raise(default, runner);
+    }
 
     public void OnConnectedToServer(NetworkRunner runner) { }
-
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
     public void OnSceneLoadStart(NetworkRunner runner) { }
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }

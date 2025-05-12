@@ -17,6 +17,8 @@ public class GameplayManager : NetworkBehaviour
     private static GameplayManager _instance;
     public static GameplayManager Instance => _instance;
 
+    private bool _playersSpawned = false;
+
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -31,12 +33,39 @@ public class GameplayManager : NetworkBehaviour
 
     public override void Spawned()
     {
-        if (!Runner.IsServer) return; 
-        SpawnAllPlayers();
+        if (!Runner.IsServer) return;
+        // Don't immediately spawn here
+    }
+
+    private void Update()
+    {
+        if (!Runner || _playersSpawned || !Runner.IsServer)
+            return;
+
+        // Wait until players are fully active and their PlayerData objects exist
+        bool allPlayersReady = true;
+
+        foreach (var player in Runner.ActivePlayers)
+        {
+            var data = GameManager.Instance.GetPlayerData(player);
+            if (data == null)
+            {
+                allPlayersReady = false;
+                break;
+            }
+        }
+
+        if (allPlayersReady)
+        {
+            SpawnAllPlayers();
+            _playersSpawned = true;
+        }
     }
 
     private void SpawnAllPlayers()
     {
+        Debug.Log("[GameplayManager] Spawning all players...");
+
         int index = 0;
         foreach (var player in Runner.ActivePlayers)
         {

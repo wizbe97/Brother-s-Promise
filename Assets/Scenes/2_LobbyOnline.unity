@@ -2039,7 +2039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   launcher: {fileID: 454400920}
-  sceneIndexToLoad: 0
+  sceneIndexToLoad: 2
   panelLobby: {fileID: 5708221723123456925}
   roomNameText: {fileID: 1103923711}
   startButton: {fileID: 7383437993159301490}

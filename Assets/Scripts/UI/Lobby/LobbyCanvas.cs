@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -115,9 +116,22 @@ public class LobbyCanvas : MonoBehaviour
         if (!FusionHelper.LocalRunner.IsServer)
             return;
 
+        if (sceneIndexToLoad <= 0)
+        {
+            Debug.LogError("[LobbyCanvas] Invalid scene index to load.");
+            return;
+        }
+
         FusionHelper.LocalRunner.SessionInfo.IsOpen = false;
         FusionHelper.LocalRunner.SessionInfo.IsVisible = false;
 
-        LoadingManager.Instance.LoadSpecificLevel(FusionHelper.LocalRunner, sceneIndexToLoad);
+        // Get the scene name from build index
+        string scenePath = SceneUtility.GetScenePathByBuildIndex(sceneIndexToLoad);
+        string sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+        // Now call LoadScene with sceneName (string)
+        FusionHelper.LocalRunner.LoadScene(sceneName);
     }
+
+
 }

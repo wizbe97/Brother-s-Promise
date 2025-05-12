@@ -87,13 +87,11 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     public override void Spawned()
     {
+        Runner.SetIsSimulated(Object, true);
+
         if (HasInputAuthority)
         {
-            // IMPORTANT! Tell Fusion: this is the object that should receive input.
             Runner.SetPlayerObject(Runner.LocalPlayer, Object);
-
-            // OPTIONAL: Force simulate physics if needed
-            Runner.SetIsSimulated(Object, true);
         }
     }
 

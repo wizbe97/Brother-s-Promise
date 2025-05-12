@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0ce135eb2fe6874cb3c402f13d306c2, type: 3}
-  m_Name: Player Stats
+  m_Name: Brother2Stats
   m_EditorClassIdentifier: 
   PlayerLayer:
     serializedVersion: 2

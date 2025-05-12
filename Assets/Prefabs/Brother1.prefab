@@ -15,8 +15,8 @@ GameObject:
   - component: {fileID: 8484786003874999907}
   - component: {fileID: 6706557283489904336}
   - component: {fileID: 1146663962102007937}
-  - component: {fileID: -8317715678253594859}
   - component: {fileID: -6353277027291942731}
+  - component: {fileID: 2420541321218666721}
   m_Layer: 6
   m_Name: Brother1
   m_TagString: Untagged
@@ -215,8 +215,9 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: -8317715678253594859}
+  - {fileID: 1146663962102007937}
   - {fileID: -6353277027291942731}
+  - {fileID: 2420541321218666721}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &1146663962102007937
 MonoBehaviour:
@@ -232,23 +233,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Stats>k__BackingField: {fileID: 11400000, guid: 894dfe33661263b42a8e1490d64c0424, type: 2}
   _drawGizmos: 0
---- !u!114 &-8317715678253594859
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7688675521678531137}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
 --- !u!114 &-6353277027291942731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,3 +245,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e2f4e347b70ab744a76525cac347990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2420541321218666721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7688675521678531137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e690b5fb1084f5ab1c86457af401d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 1
+  _interpolationTarget: {fileID: 0}
+  UsePreciseRotation: 0
+  UseRenderSleepThresholds: 1
+  RenderThresholds:
+    UseEnergy: 1
+    Position: 0.01
+    Rotation: 0.01
+    Scale: 0.01

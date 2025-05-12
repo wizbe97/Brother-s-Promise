@@ -1,10 +1,11 @@
 using System;
+using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObject
+public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsObject
 {
     #region References
 
@@ -180,6 +181,8 @@ public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObje
 
     private void GatherInput()
     {
+        if (!Object.HasInputAuthority) return;
+
         _frameInput = _playerInput.Gather();
 
         if (_frameInput.JumpDown)
@@ -193,13 +196,13 @@ public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObje
             _dashToConsume = true;
         }
 
-        // Reset latch permission if ladder grab was released
         if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
         {
             _canLatchLadder = true;
             _mustReleaseLadderGrabBeforeLatch = false;
         }
     }
+
 
 
 

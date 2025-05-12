@@ -12,11 +12,15 @@ public class PlayerInput : NetworkBehaviour
 
     private InputAction _move, _jump, _dash, _ladderGrab;
 
+    private bool _inputAssigned = false;
+
+    private NetworkObject _networkObject => Object; // safer aliasing
+
     public override void Spawned()
     {
-        Debug.Log($"[PlayerInput] Spawned {gameObject.name} with InputAuthority={Object.InputAuthority}");
+        Debug.Log($"[PlayerInput] Spawned {gameObject.name} with InputAuthority={_networkObject?.InputAuthority} (Is Local? {_networkObject?.HasInputAuthority})");
 
-        if (!Object.HasInputAuthority)
+        if (!_networkObject || !_networkObject.HasInputAuthority)
         {
             Debug.Log($"[PlayerInput] No input authority on {gameObject.name}. Skipping input assignment.");
             return;
@@ -39,6 +43,12 @@ public class PlayerInput : NetworkBehaviour
 
     public FrameInput Gather()
     {
+        if (!_inputAssigned)
+        {
+            Debug.LogWarning($"[PlayerInput] Attempted to gather input, but input is NOT assigned yet for {gameObject.name}!");
+            return new FrameInput();
+        }
+
         return new FrameInput
         {
             Move = _move?.ReadValue<Vector2>() ?? Vector2.zero,
@@ -55,7 +65,7 @@ public class PlayerInput : NetworkBehaviour
 
         while (playerData == null)
         {
-            playerData = GameManager.Instance?.GetPlayerData(Object.InputAuthority);
+            playerData = GameManager.Instance?.GetPlayerData(_networkObject.InputAuthority);
             if (playerData == null)
             {
                 yield return null; // Wait next frame
@@ -65,6 +75,10 @@ public class PlayerInput : NetworkBehaviour
         Debug.Log($"[PlayerInput] Found PlayerData for {gameObject.name}. SelectedCharacter={playerData.SelectedCharacter}");
 
         AssignInputActions(playerData.SelectedCharacter);
+
+        _inputAssigned = true;
+
+        Debug.Log($"[PlayerInput] Input assignment complete for {gameObject.name}");
     }
 
     private void AssignInputActions(int selectedCharacter)
@@ -93,6 +107,8 @@ public class PlayerInput : NetworkBehaviour
         {
             Debug.LogError($"[PlayerInput] Unknown SelectedCharacter={selectedCharacter} on {gameObject.name}");
         }
+
+        Debug.Log($"[PlayerInput] Move: {_move != null}, Jump: {_jump != null}, Dash: {_dash != null}, LadderGrab: {_ladderGrab != null}");
     }
 }
 

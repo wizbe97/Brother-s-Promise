@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsObject
+public class GameplayController : MonoBehaviour, IPlayerController, IPhysicsObject
 {
     #region References
 
@@ -86,6 +86,13 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
         PhysicsSimulator.Instance.AddPlayer(this);
     }
 
+    private bool HasInputAuthority()
+    {
+        var networkObject = GetComponent<NetworkObject>();
+        return networkObject != null && networkObject.HasInputAuthority;
+    }
+
+
     private void OnDestroy() => PhysicsSimulator.Instance.RemovePlayer(this);
 
     public void OnValidate()
@@ -97,6 +104,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
     }
     public void TickUpdate(float delta, float time)
     {
+        if (!HasInputAuthority()) return;
         _delta = delta;
         _time = time;
 
@@ -105,6 +113,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     public void TickFixedUpdate(float delta)
     {
+        if (!HasInputAuthority()) return;
         _delta = delta;
 
         if (!Active) return;

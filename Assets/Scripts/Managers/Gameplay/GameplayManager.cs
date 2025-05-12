@@ -49,26 +49,26 @@ public class GameplayManager : NetworkBehaviour
         OnSceneLoaded?.RemoveResponse(SceneLoaded);
     }
 
-    private void SceneLoaded(PlayerRef _, NetworkRunner __)
+    private void SceneLoaded(PlayerRef _, NetworkRunner runner)
     {
         Debug.Log("[GameplayManager] SceneLoaded event received.");
 
-        if (_cachedRunner == null)
+        if (runner == null)
         {
-            Debug.LogError("[GameplayManager] Cached runner is NULL. Cannot spawn players.");
+            Debug.LogError("[GameplayManager] Runner is NULL. Cannot spawn players.");
             return;
         }
 
-        if (!_cachedRunner.IsServer)
+        if (!runner.IsServer)
         {
             Debug.Log("[GameplayManager] Not the server. Skipping player spawn.");
             return;
         }
 
-        Debug.Log("[GameplayManager] Spawning players...");
+        Debug.Log("[GameplayManager] Server is spawning players...");
 
         int index = 0;
-        foreach (var player in _cachedRunner.ActivePlayers)
+        foreach (var player in runner.ActivePlayers)
         {
             var playerData = GameManager.Instance.GetPlayerData(player);
             if (playerData == null)
@@ -83,11 +83,11 @@ public class GameplayManager : NetworkBehaviour
 
             Transform spawnPoint = GetSpawnPoint(index);
 
-            var spawnedObject = _cachedRunner.Spawn(
+            var spawnedObject = runner.Spawn(
                 prefabToSpawn,
                 spawnPoint.position,
                 spawnPoint.rotation,
-                player
+                player 
             );
 
             if (spawnedObject != null)
@@ -102,6 +102,7 @@ public class GameplayManager : NetworkBehaviour
             index++;
         }
     }
+
 
     private Transform GetSpawnPoint(int index)
     {

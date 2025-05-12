@@ -6,30 +6,68 @@ using UnityEngine.InputSystem;
 
 public class PlayerInput : MonoBehaviour
 {
-    private Brother1InputActions _actions;
+    private Brother1InputActions _brother1InputActions;
+    private Brother2InputActions _brother2InputActions;
     private InputAction _move, _jump, _dash, _ladderGrab;
+
+    private bool _inputSetupDone = false;
+    private int _selectedCharacter = 0;
 
     private void Awake()
     {
-        _actions = new Brother1InputActions(); // This was setup for singleplayer. There is Brother1InputActions and Brother2InputActions. You can see in the prefabs folder the 2 different prefabs for the 2 brothers. It needs to assign the correct InputActions based on the SelectedCharacter in PlayerData.
-        _move = _actions.Player.Move;
-        _jump = _actions.Player.Jump;
-        _dash = _actions.Player.Dash;
-        _ladderGrab = _actions.Player.LadderGrab;
+        _brother1InputActions = new Brother1InputActions();
+        _brother2InputActions = new Brother2InputActions();
     }
 
-    private void OnEnable() => _actions.Enable();
-    private void OnDisable() => _actions.Disable();
+    private void Update()
+    {
+        if (_inputSetupDone) return;
+
+        var playerData = GameManager.Instance.GetPlayerData(FusionHelper.LocalRunner.LocalPlayer);
+
+        if (playerData != null)
+        {
+            _inputSetupDone = true;
+            _selectedCharacter = playerData.SelectedCharacter;
+
+            if (_selectedCharacter == 0)
+            {
+                _move = _brother1InputActions.Player.Move;
+                _jump = _brother1InputActions.Player.Jump;
+                _dash = _brother1InputActions.Player.Dash;
+                _ladderGrab = _brother1InputActions.Player.LadderGrab;
+                _brother1InputActions.Enable();
+            }
+            else
+            {
+                _move = _brother2InputActions.Player.Move;
+                _jump = _brother2InputActions.Player.Jump;
+                _dash = _brother2InputActions.Player.Dash;
+                _ladderGrab = _brother2InputActions.Player.LadderGrab;
+                _brother2InputActions.Enable();
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (!_inputSetupDone) return;
+
+        if (_selectedCharacter == 0)
+            _brother1InputActions?.Disable();
+        else
+            _brother2InputActions?.Disable();
+    }
 
     public FrameInput Gather()
     {
         return new FrameInput
         {
-            Move = _move.ReadValue<Vector2>(),
-            JumpDown = _jump.WasPressedThisFrame(),
-            JumpHeld = _jump.IsPressed(),
-            DashDown = _dash.WasPressedThisFrame(),
-            LadderHeld = _ladderGrab.IsPressed()
+            Move = _move?.ReadValue<Vector2>() ?? Vector2.zero,
+            JumpDown = _jump?.WasPressedThisFrame() ?? false,
+            JumpHeld = _jump?.IsPressed() ?? false,
+            DashDown = _dash?.WasPressedThisFrame() ?? false,
+            LadderHeld = _ladderGrab?.IsPressed() ?? false
         };
     }
 }

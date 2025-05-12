@@ -181,8 +181,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     private void GatherInput()
     {
-        if (!Object.HasInputAuthority) return;
-
         _frameInput = _playerInput.Gather();
 
         if (_frameInput.JumpDown)
@@ -202,8 +200,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
             _mustReleaseLadderGrabBeforeLatch = false;
         }
     }
-
-
 
 
     #endregion

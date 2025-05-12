@@ -1,114 +1,36 @@
 using UnityEngine;
-using Fusion;
 
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
-public class PlayerInput : NetworkBehaviour
+public class PlayerInput : MonoBehaviour
 {
-    private Brother1InputActions _brother1Actions;
-    private Brother2InputActions _brother2Actions;
-
+    private Brother1InputActions _actions;
     private InputAction _move, _jump, _dash, _ladderGrab;
 
-    private bool _inputAssigned = false;
-
-    private NetworkObject _networkObject => Object; // safer aliasing
-
-    public override void Spawned()
+    private void Awake()
     {
-        Debug.Log($"[PlayerInput] Spawned {gameObject.name} with InputAuthority={_networkObject?.InputAuthority} (Is Local? {_networkObject?.HasInputAuthority})");
-
-        if (!_networkObject || !_networkObject.HasInputAuthority)
-        {
-            Debug.Log($"[PlayerInput] No input authority on {gameObject.name}. Skipping input assignment.");
-            return;
-        }
-
-        StartCoroutine(AssignInputWhenReady());
+        _actions = new Brother1InputActions(); // This was setup for singleplayer. There is Brother1InputActions and Brother2InputActions. You can see in the prefabs folder the 2 different prefabs for the 2 brothers. It needs to assign the correct InputActions based on the SelectedCharacter in PlayerData.
+        _move = _actions.Player.Move;
+        _jump = _actions.Player.Jump;
+        _dash = _actions.Player.Dash;
+        _ladderGrab = _actions.Player.LadderGrab;
     }
 
-    private void OnEnable()
-    {
-        _brother1Actions?.Enable();
-        _brother2Actions?.Enable();
-    }
-
-    private void OnDisable()
-    {
-        _brother1Actions?.Disable();
-        _brother2Actions?.Disable();
-    }
+    private void OnEnable() => _actions.Enable();
+    private void OnDisable() => _actions.Disable();
 
     public FrameInput Gather()
     {
-        if (!_inputAssigned)
-        {
-            Debug.LogWarning($"[PlayerInput] Attempted to gather input, but input is NOT assigned yet for {gameObject.name}!");
-            return new FrameInput();
-        }
-
         return new FrameInput
         {
-            Move = _move?.ReadValue<Vector2>() ?? Vector2.zero,
-            JumpDown = _jump?.WasPressedThisFrame() ?? false,
-            JumpHeld = _jump?.IsPressed() ?? false,
-            DashDown = _dash?.WasPressedThisFrame() ?? false,
-            LadderHeld = _ladderGrab?.IsPressed() ?? false
+            Move = _move.ReadValue<Vector2>(),
+            JumpDown = _jump.WasPressedThisFrame(),
+            JumpHeld = _jump.IsPressed(),
+            DashDown = _dash.WasPressedThisFrame(),
+            LadderHeld = _ladderGrab.IsPressed()
         };
-    }
-
-    private System.Collections.IEnumerator AssignInputWhenReady()
-    {
-        PlayerData playerData = null;
-
-        while (playerData == null)
-        {
-            playerData = GameManager.Instance?.GetPlayerData(_networkObject.InputAuthority);
-            if (playerData == null)
-            {
-                yield return null; // Wait next frame
-            }
-        }
-
-        Debug.Log($"[PlayerInput] Found PlayerData for {gameObject.name}. SelectedCharacter={playerData.SelectedCharacter}");
-
-        AssignInputActions(playerData.SelectedCharacter);
-
-        _inputAssigned = true;
-
-        Debug.Log($"[PlayerInput] Input assignment complete for {gameObject.name}");
-    }
-
-    private void AssignInputActions(int selectedCharacter)
-    {
-        if (selectedCharacter == 0)
-        {
-            _brother1Actions = new Brother1InputActions();
-            _move = _brother1Actions.Player.Move;
-            _jump = _brother1Actions.Player.Jump;
-            _dash = _brother1Actions.Player.Dash;
-            _ladderGrab = _brother1Actions.Player.LadderGrab;
-
-            Debug.Log($"[PlayerInput] Assigned Brother1 input actions for {gameObject.name}");
-        }
-        else if (selectedCharacter == 1)
-        {
-            _brother2Actions = new Brother2InputActions();
-            _move = _brother2Actions.Player.Move;
-            _jump = _brother2Actions.Player.Jump;
-            _dash = _brother2Actions.Player.Dash;
-            _ladderGrab = _brother2Actions.Player.LadderGrab;
-
-            Debug.Log($"[PlayerInput] Assigned Brother2 input actions for {gameObject.name}");
-        }
-        else
-        {
-            Debug.LogError($"[PlayerInput] Unknown SelectedCharacter={selectedCharacter} on {gameObject.name}");
-        }
-
-        Debug.Log($"[PlayerInput] Move: {_move != null}, Jump: {_jump != null}, Dash: {_dash != null}, LadderGrab: {_ladderGrab != null}");
     }
 }
 

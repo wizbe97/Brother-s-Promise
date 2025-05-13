@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : MonoBehaviour, IPlayerController
+public class GameplayController : NetworkBehaviour, IPlayerController
 {
     #region References
 
@@ -13,7 +13,6 @@ public class GameplayController : MonoBehaviour, IPlayerController
     private CapsuleCollider2D _airborneCollider;
     private ConstantForce2D _constantForce;
     private Rigidbody2D _rb;
-    private PlayerInput _playerInput;
 
     #endregion
 
@@ -78,7 +77,6 @@ public class GameplayController : MonoBehaviour, IPlayerController
 
     private void Awake()
     {
-        _playerInput = GetComponent<PlayerInput>();
         _constantForce = GetComponent<ConstantForce2D>();
 
         SetupCharacter();
@@ -91,20 +89,29 @@ public class GameplayController : MonoBehaviour, IPlayerController
             SetupCharacter();
 #endif
     }
-    private void Update()
-    {
-        if (!Active) return;
-        _delta = Time.deltaTime;
-        _time = Time.time;
 
-        GatherInput();
-    }
-
-    private void FixedUpdate()
+    public override void FixedUpdateNetwork()
     {
-        if (!Active) return;
-        _delta = Time.fixedDeltaTime;
-        _time = Time.time;
+        if (!Active)
+            return;
+
+        _delta = Runner.DeltaTime;
+        _time = Runner.SimulationTime;
+
+        if (GetInput<FrameInput>(out var input))
+        {
+            _frameInput.Move = input.Move;
+            _frameInput.JumpDown = input.JumpDown;
+            _frameInput.JumpHeld = input.JumpHeld;
+            _frameInput.DashDown = input.DashDown;
+            _frameInput.LadderHeld = input.LadderHeld;
+            _jumpToConsume |= _frameInput.JumpDown || (_frameInput.JumpPressedTime > 0 && (_time - _frameInput.JumpPressedTime) <= 0.2f);
+            _dashToConsume |= _frameInput.DashDown;
+        }
+        else
+        {
+            _frameInput = default;
+        }
 
         _wasClimbingLadderThisFrame = ClimbingLadder;
 
@@ -123,6 +130,7 @@ public class GameplayController : MonoBehaviour, IPlayerController
         CleanFrameData();
         SaveCharacterState();
     }
+
 
 
     #endregion
@@ -167,29 +175,6 @@ public class GameplayController : MonoBehaviour, IPlayerController
     #region Input
 
     private FrameInput _frameInput;
-
-    private void GatherInput()
-    {
-        _frameInput = _playerInput.Gather();
-
-        if (_frameInput.JumpDown)
-        {
-            _jumpToConsume = true;
-            _timeJumpWasPressed = _time;
-        }
-
-        if (_frameInput.DashDown)
-        {
-            _dashToConsume = true;
-        }
-
-        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
-        {
-            _canLatchLadder = true;
-            _mustReleaseLadderGrabBeforeLatch = false;
-        }
-    }
-
 
     #endregion
 
@@ -560,6 +545,7 @@ public class GameplayController : MonoBehaviour, IPlayerController
 
     private void ExecuteJump(JumpType jumpType)
     {
+        Debug.Log($"[GameplayController] Jump executed: {jumpType}");
         SetVelocity(_trimmedFrameVelocity);
         _endedJumpEarly = false;
         _bufferedJumpUsable = false;

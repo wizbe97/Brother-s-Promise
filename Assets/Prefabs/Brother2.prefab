@@ -14,10 +14,9 @@ GameObject:
   - component: {fileID: 2751861676659374535}
   - component: {fileID: 8484786003874999907}
   - component: {fileID: 5055860814935223859}
-  - component: {fileID: 4160723823528424638}
   - component: {fileID: 4286344767616007100}
-  - component: {fileID: -1418154041485193203}
   - component: {fileID: 3023068025668959267}
+  - component: {fileID: 4566225967186962220}
   m_Layer: 6
   m_Name: Brother2
   m_TagString: Untagged
@@ -216,21 +215,9 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 4160723823528424638}
-  - {fileID: -1418154041485193203}
+  - {fileID: 4286344767616007100}
+  - {fileID: 4566225967186962220}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &4160723823528424638
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7688675521678531137}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e2f4e347b70ab744a76525cac347990, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &4286344767616007100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,7 +232,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Stats>k__BackingField: {fileID: 11400000, guid: 523ae74de93f87f47b76eb02ce0d3a78, type: 2}
   _drawGizmos: 0
---- !u!114 &-1418154041485193203
+--- !u!247 &3023068025668959267
+ConstantForce2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7688675521678531137}
+  m_Enabled: 1
+  m_Force: {x: 0, y: 0}
+  m_RelativeForce: {x: 0, y: 0}
+  m_Torque: 0
+--- !u!114 &4566225967186962220
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -268,14 +266,3 @@ MonoBehaviour:
     Position: 0.01
     Rotation: 0.01
     Scale: 0.01
---- !u!247 &3023068025668959267
-ConstantForce2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7688675521678531137}
-  m_Enabled: 1
-  m_Force: {x: 0, y: 0}
-  m_RelativeForce: {x: 0, y: 0}
-  m_Torque: 0

@@ -37,7 +37,7 @@ MonoBehaviour:
   ExtraConstantGravity: 30
   BufferedJumpTime: 0.15
   CoyoteTime: 0.15
-  JumpPower: 15
+  JumpPower: 10
   EndJumpEarlyExtraForceMultiplier: 2
   MaxAirJumps: 0
   UseApexControl: 1

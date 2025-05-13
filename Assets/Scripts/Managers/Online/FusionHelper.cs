@@ -21,6 +21,49 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
     public FusionEvent OnDisconnectedEvent;
     public FusionEvent OnSceneLoadedEvent;
 
+    private FrameInput _cachedFrameInput;
+
+    private void Update()
+    {
+        if (GameManager.Instance == null || LocalRunner == null || SceneManager.GetActiveScene().name != "4_Gameplay1")
+            return;
+
+        int selectedCharacter = GameManager.Instance.GetPlayerData(LocalRunner.LocalPlayer)?.SelectedCharacter ?? 0;
+
+        if (selectedCharacter == 0)
+        {
+            var player = _brother1InputActions.Player;
+
+            _cachedFrameInput.Move = player.Move.ReadValue<Vector2>();
+
+            if (player.Jump.WasPressedThisFrame())
+                _cachedFrameInput.JumpDown = true;
+
+            _cachedFrameInput.JumpHeld = player.Jump.IsPressed();
+
+            if (player.Dash.WasPressedThisFrame())
+                _cachedFrameInput.DashDown = true;
+
+            _cachedFrameInput.LadderHeld = player.LadderGrab.IsPressed();
+        }
+        else
+        {
+            var player = _brother2InputActions.Player;
+
+            _cachedFrameInput.Move = player.Move.ReadValue<Vector2>();
+
+            if (player.Jump.WasPressedThisFrame())
+                _cachedFrameInput.JumpDown = true;
+
+            _cachedFrameInput.JumpHeld = player.Jump.IsPressed();
+
+            if (player.Dash.WasPressedThisFrame())
+                _cachedFrameInput.DashDown = true;
+
+            _cachedFrameInput.LadderHeld = player.LadderGrab.IsPressed();
+        }
+    }
+
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
@@ -82,54 +125,9 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
-        if (GameManager.Instance == null || runner == null || SceneManager.GetActiveScene().name != "4_Gameplay1")
-            return;
-
-        var playerData = GameManager.Instance.GetPlayerData(runner.LocalPlayer);
-        if (playerData == null)
-            return;
-
-        int selectedCharacter = playerData.SelectedCharacter;
-
-        FrameInput frameInput = new FrameInput();
-
-        if (selectedCharacter == 0)
-        {
-            var player = _brother1InputActions.Player;
-            frameInput.Move = player.Move.ReadValue<Vector2>();
-
-            if (player.Jump.WasPressedThisFrame())
-            {
-                frameInput.JumpDown = true;
-                frameInput.JumpPressedTime = Time.time;
-                Debug.Log($"[FusionHelper] JumpDown input captured (Brother1) at time {Time.time}");
-            }
-            frameInput.JumpHeld = player.Jump.IsPressed();
-
-            frameInput.DashDown = player.Dash.WasPressedThisFrame();
-            frameInput.LadderHeld = player.LadderGrab.IsPressed();
-        }
-        else
-        {
-            var player = _brother2InputActions.Player;
-            frameInput.Move = player.Move.ReadValue<Vector2>();
-
-            if (player.Jump.WasPressedThisFrame())
-            {
-                frameInput.JumpDown = true;
-                frameInput.JumpPressedTime = Time.time;
-                Debug.Log($"[FusionHelper] JumpDown input captured (Brother2) at time {Time.time}");
-            }
-            frameInput.JumpHeld = player.Jump.IsPressed();
-
-            frameInput.DashDown = player.Dash.WasPressedThisFrame();
-            frameInput.LadderHeld = player.LadderGrab.IsPressed();
-        }
-
-        input.Set(frameInput);
+        input.Set(_cachedFrameInput);
+        _cachedFrameInput = default; // reset after sending
     }
-
-
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }

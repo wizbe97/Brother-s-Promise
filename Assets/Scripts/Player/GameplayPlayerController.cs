@@ -105,12 +105,19 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _frameInput.JumpHeld = input.JumpHeld;
             _frameInput.DashDown = input.DashDown;
             _frameInput.LadderHeld = input.LadderHeld;
-            _jumpToConsume |= _frameInput.JumpDown || (_frameInput.JumpPressedTime > 0 && (_time - _frameInput.JumpPressedTime) <= 0.2f);
+
+            _jumpToConsume |= _frameInput.JumpDown;
             _dashToConsume |= _frameInput.DashDown;
         }
         else
         {
             _frameInput = default;
+        }
+
+        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
+        {
+            _canLatchLadder = true;
+            _mustReleaseLadderGrabBeforeLatch = false;
         }
 
         _wasClimbingLadderThisFrame = ClimbingLadder;
@@ -136,6 +143,16 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #endregion
 
     #region Setup
+
+    public override void Spawned()
+    {
+        base.Spawned();
+        if (Object.HasInputAuthority)
+        {
+            Runner.SetIsSimulated(Object, true);
+        }
+    }
+
 
     private bool _cachedQueryMode, _cachedQueryTriggers;
     private GeneratedCharacterSize _character;
@@ -175,6 +192,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region Input
 
     private FrameInput _frameInput;
+
 
     #endregion
 

@@ -8,5 +8,4 @@ public struct FrameInput : INetworkInput
     public NetworkBool JumpHeld;
     public NetworkBool DashDown;
     public NetworkBool LadderHeld;
-    public float JumpPressedTime;
 }

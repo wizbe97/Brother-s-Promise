@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsObject
+public class GameplayController : MonoBehaviour, IPlayerController
 {
     #region References
 
@@ -82,20 +82,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
         _constantForce = GetComponent<ConstantForce2D>();
 
         SetupCharacter();
-        PhysicsSimulator.Instance.AddPlayer(this);
     }
-
-    public override void Spawned()
-    {
-        Runner.SetIsSimulated(Object, true);
-
-        if (HasInputAuthority)
-        {
-            Runner.SetPlayerObject(Runner.LocalPlayer, Object);
-        }
-    }
-
-    private void OnDestroy() => PhysicsSimulator.Instance.RemovePlayer(this);
 
     public void OnValidate()
     {
@@ -104,48 +91,39 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
             SetupCharacter();
 #endif
     }
-    public void TickUpdate(float delta, float time)
+    private void Update()
     {
-        if (!HasInputAuthority) return;
-        _delta = delta;
-        _time = time;
+        if (!Active) return;
+        _delta = Time.deltaTime;
+        _time = Time.time;
 
         GatherInput();
     }
 
-    public void TickFixedUpdate(float delta)
+    private void FixedUpdate()
     {
-        if (!HasInputAuthority) return;
-        _delta = delta;
-
         if (!Active) return;
+        _delta = Time.fixedDeltaTime;
+        _time = Time.time;
+
         _wasClimbingLadderThisFrame = ClimbingLadder;
 
-
         RemoveTransientVelocity();
-
         SetFrameData();
-
         CalculateCollisions();
         CalculateDirection();
         CalculateJump();
-
         CalculateWalls();
         CalculateLadders();
-
         CalculateDash();
-
         CalculateExternalModifiers();
-
         TraceGround();
         Move();
-
         CalculateCrouch();
-
         CleanFrameData();
-
         SaveCharacterState();
     }
+
 
     #endregion
 

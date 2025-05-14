@@ -60,10 +60,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c783e07f021ec4746acd32c9242f1f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerDataNO:
-    RawGuidValue: ef45bf83fe2be9941862c1ede099a728
-  LobbyPlayerControllerNO:
-    RawGuidValue: b5e9a855f47a39349aefccf247b72789
   OnPlayerJoinedEvent: {fileID: 11400000, guid: ba2541d91e2b085458e350d205a8c247, type: 2}
   OnPlayerLeftEvent: {fileID: 11400000, guid: ef8784a6d14cbe345bfd13f26444ec96, type: 2}
   OnRunnerShutDownEvent: {fileID: 11400000, guid: 63a027828c3b26042baa8b74dbda4b62, type: 2}
@@ -98,7 +94,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _physicsAuthority: 2
   _physicsTiming: 3
-  ClientPhysicsSimulation: 3
+  ClientPhysicsSimulation: 2
   DeltaTimeMultiplier: 1
   SetUnityFixedTimestep: 0
 --- !u!114 &-7049529434468020402
@@ -113,4 +109,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9378c2797094a4643864e2785dbb0f17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnInputCollected: {fileID: 11400000, guid: 150612a2a3906e84abeb1ec7805c78ac, type: 2}

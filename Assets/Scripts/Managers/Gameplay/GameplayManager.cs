@@ -15,6 +15,7 @@ public class GameplayManager : NetworkBehaviour
 
     [Header("Fusion Events")]
     public FusionEvent OnSceneLoaded;
+    public FusionEvent OnPlayerLeft;
 
     private static GameplayManager _instance;
     public static GameplayManager Instance => _instance;
@@ -102,7 +103,6 @@ public class GameplayManager : NetworkBehaviour
             index++;
         }
     }
-
 
     private Transform GetSpawnPoint(int index)
     {

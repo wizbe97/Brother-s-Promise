@@ -37,14 +37,14 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(this.transform.parent ? this.transform.parent.gameObject : this.gameObject);
+            Destroy(transform.parent ? transform.parent.gameObject : gameObject);
             return;
         }
 
         Instance = this;
         DontDestroyOnLoad(transform.parent ? transform.parent.gameObject : gameObject);
     }
-    
+
 
     private void OnEnable()
     {
@@ -102,12 +102,27 @@ public class GameManager : MonoBehaviour
         {
             if (runner.IsServer)
             {
-                foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
+                if (SceneManager.GetActiveScene().name == "2_LobbyOnline")
                 {
-                    if (controller.Object != null && controller.Object.InputAuthority == player)
+                    foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
                     {
-                        runner.Despawn(controller.Object);
+                        if (controller.Object != null && controller.Object.InputAuthority == player)
+                        {
+                            runner.Despawn(controller.Object);
+                        }
                     }
+                }
+                else if (SceneManager.GetActiveScene().name == "4_Gameplay1")
+                {
+                    foreach (var controller in FindObjectsOfType<GameplayController>())
+                    {
+                        if (controller.Object != null && controller.Object.InputAuthority == player)
+                        {
+                            runner.Despawn(controller.Object);
+                        }
+                    }
+
+                    ExitSession();
                 }
             }
 
@@ -120,7 +135,6 @@ public class GameManager : MonoBehaviour
 
     private void OnDisconnected(PlayerRef _, NetworkRunner runner)
     {
-        Debug.Log("[GameManager] Detected disconnection, exiting session...");
         ExitSession();
     }
 

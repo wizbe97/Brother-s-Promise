@@ -230,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c89b8855ab650ac489f1f1b5f2a94751, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <Stats>k__BackingField: {fileID: 11400000, guid: 894dfe33661263b42a8e1490d64c0424, type: 2}
+  <Stats>k__BackingField: {fileID: 11400000, guid: d25b2def630a1be4688764d5ab8a85de, type: 2}
   _drawGizmos: 0
 --- !u!247 &-3630759021309222859
 ConstantForce2D:

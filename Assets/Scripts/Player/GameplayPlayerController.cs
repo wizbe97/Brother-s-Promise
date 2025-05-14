@@ -106,7 +106,12 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _frameInput.DashDown = input.DashDown;
             _frameInput.LadderHeld = input.LadderHeld;
 
-            _jumpToConsume |= _frameInput.JumpDown;
+            if (_frameInput.JumpDown)
+            {
+                _jumpToConsume = true;
+                _timeJumpWasPressed = _time;
+            }
+
             _dashToConsume |= _frameInput.DashDown;
         }
         else
@@ -545,30 +550,51 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void CalculateJump()
     {
-        if ((_jumpToConsume || HasBufferedJump) && CanStand)
+        bool jumpRequested = _jumpToConsume || HasBufferedJump;
+
+        if (jumpRequested && CanStand)
         {
-            if (CanWallJump) ExecuteJump(JumpType.WallJump);
-            else if (ClimbingLadder) ExecuteJump(JumpType.LadderJump);
-            else if (_grounded) ExecuteJump(JumpType.Jump);
-            else if (CanUseCoyote) ExecuteJump(JumpType.Coyote);
-            else if (CanAirJump) ExecuteJump(JumpType.AirJump);
+            if (HasBufferedJump)
+                _bufferedJumpUsable = false;
+
+            if (_jumpToConsume)
+                _jumpToConsume = false;
+
+            if (CanWallJump)
+                ExecuteJump(JumpType.WallJump);
+            else if (ClimbingLadder)
+                ExecuteJump(JumpType.LadderJump);
+            else if (_grounded)
+                ExecuteJump(JumpType.Jump);
+            else if (CanUseCoyote)
+                ExecuteJump(JumpType.Coyote);
+            else if (CanAirJump)
+                ExecuteJump(JumpType.AirJump);
         }
 
-        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0) _endedJumpEarly = true; // Early end detection
+        // Handle early jump end (variable jump height)
+        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0)
+        {
+            _endedJumpEarly = true;
+        }
 
-
-        if (_time > _returnWallInputLossAfter) _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
+        // Handle restoring wall jump control
+        if (_time > _returnWallInputLossAfter)
+        {
+            _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
+        }
     }
+
 
     private void ExecuteJump(JumpType jumpType)
     {
         SetVelocity(_trimmedFrameVelocity);
         _endedJumpEarly = false;
-        _bufferedJumpUsable = false;
         _lastJumpExecutedTime = _time;
         _currentStepDownLength = 0;
 
-        if (ClimbingLadder) ToggleClimbingLadder(false);
+        if (ClimbingLadder)
+            ToggleClimbingLadder(false);
 
         switch (jumpType)
         {
@@ -589,6 +615,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
                 _wallJumpInputNerfPoint = 0;
                 _returnWallInputLossAfter = _time + Stats.WallJumpTotalInputLossTime;
                 _wallDirectionForJump = _wallDirThisFrame;
+
                 if (_isOnWall || IsPushingAgainstWall)
                 {
                     AddFrameForce(new Vector2(-_wallDirThisFrame, 1).normalized * Stats.WallJumpPower);
@@ -602,7 +629,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             case JumpType.LadderJump:
                 var input = _frameInput.Move;
                 var ladderJumpDir = new Vector2(input.x, 1).normalized;
-                _mustReleaseLadderGrabBeforeLatch = true; // require release before latching
+                _mustReleaseLadderGrabBeforeLatch = true;
                 _canLatchLadder = false;
                 SetVelocity(Vector2.zero);
                 AddFrameForce(ladderJumpDir * Stats.JumpPower);
@@ -611,9 +638,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
         Jumped?.Invoke(jumpType);
     }
-
-
-
 
     private void ResetAirJumps() => _airJumpsRemaining = Stats.MaxAirJumps;
 

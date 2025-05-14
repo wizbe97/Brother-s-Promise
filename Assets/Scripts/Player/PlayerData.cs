@@ -48,7 +48,6 @@ public class PlayerData : NetworkBehaviour
 
         // Raise spawn event
         OnPlayerDataSpawnedEvent?.Raise(Object.InputAuthority, Runner);
-        Debug.Log($"[PlayerData] Spawned for {Object.InputAuthority} with state authority: {Object.HasStateAuthority}");
 
         DontDestroyOnLoad(this.gameObject);
     }

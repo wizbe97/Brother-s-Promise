@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4958121450383132593}
   - component: {fileID: -6901929393448954710}
   - component: {fileID: 5289164699550940324}
+  - component: {fileID: -7049529434468020402}
   m_Layer: 0
   m_Name: Launcher
   m_TagString: Untagged
@@ -68,6 +69,7 @@ MonoBehaviour:
   OnRunnerShutDownEvent: {fileID: 11400000, guid: 63a027828c3b26042baa8b74dbda4b62, type: 2}
   OnDisconnectedEvent: {fileID: 11400000, guid: ff5a7b1fa4536ac4abd53cbb3b94a565, type: 2}
   OnSceneLoadedEvent: {fileID: 11400000, guid: 3ee5c443c79116a4d8b29dfe880251f3, type: 2}
+  OnInputCollected: {fileID: 11400000, guid: 150612a2a3906e84abeb1ec7805c78ac, type: 2}
 --- !u!114 &-6901929393448954710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,3 +101,16 @@ MonoBehaviour:
   ClientPhysicsSimulation: 3
   DeltaTimeMultiplier: 1
   SetUnityFixedTimestep: 0
+--- !u!114 &-7049529434468020402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6493560806560879542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9378c2797094a4643864e2785dbb0f17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnInputCollected: {fileID: 11400000, guid: 150612a2a3906e84abeb1ec7805c78ac, type: 2}

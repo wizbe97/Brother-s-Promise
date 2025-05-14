@@ -44,6 +44,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(transform.parent ? transform.parent.gameObject : gameObject);
     }
+    
 
     private void OnEnable()
     {
@@ -59,24 +60,6 @@ public class GameManager : MonoBehaviour
         OnRunnerShutDownEvent?.RemoveResponse(OnRunnerShutdown);
         OnDisconnectedEvent?.RemoveResponse(OnDisconnected);
 
-    }
-
-    bool escaped = false;
-
-    private void Update()
-    {
-        if (State == GameState.Playing && Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (exitCanvas != null)
-            {
-                exitCanvas.SetActive(!exitCanvas.activeSelf);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape) && !escaped)
-        {
-            DisconnectAndReturnToOffline();
-        }
     }
 
     public void DisconnectAndReturnToOffline()
@@ -109,7 +92,6 @@ public class GameManager : MonoBehaviour
         if (!_playerDatas.ContainsKey(playerRef))
         {
             _playerDatas.Add(playerRef, playerData);
-            Debug.Log($"[GameManager] Registered PlayerData for {playerRef}");
         }
     }
 
@@ -173,15 +155,13 @@ public class GameManager : MonoBehaviour
 
     public void ExitSession()
     {
-        Debug.Log("[GameManager] Exiting session and loading Main Menu immediately...");
-
         LevelManager?.ResetLoadedScene();
         SceneManager.LoadScene(0);
 
         if (exitCanvas != null)
             exitCanvas.SetActive(false);
 
-        _ = ShutdownRunner(); // shutdown quietly in background
+        _ = ShutdownRunner();
     }
 
 

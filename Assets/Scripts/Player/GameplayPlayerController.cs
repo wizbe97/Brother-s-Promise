@@ -147,12 +147,11 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     public override void Spawned()
     {
         base.Spawned();
-        if (Object.HasInputAuthority)
+        if (!Object.HasInputAuthority)
         {
             Runner.SetIsSimulated(Object, true);
         }
     }
-
 
     private bool _cachedQueryMode, _cachedQueryTriggers;
     private GeneratedCharacterSize _character;

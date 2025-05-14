@@ -12,6 +12,8 @@ public class LobbyCanvas : MonoBehaviour
 
     [Header("Scene Setup")]
     public int sceneIndexToLoad;
+    public NetworkPrefabRef PlayerDataNO;
+    public NetworkPrefabRef LobbyPlayerControllerNO;
 
     [Header("UI References")]
     [SerializeField] private GameObject panelLobby;
@@ -36,12 +38,14 @@ public class LobbyCanvas : MonoBehaviour
         {
             launcher = FindObjectOfType<GameLauncher>();
             var levelManager = FindObjectOfType<LevelManager>();
-            Debug.Log("[LobbyCanvas] Launching GameLauncher...");
             launcher.LaunchGame(GameMode.AutoHostOrClient, $"session_{saveSlot}", levelManager);
         }
 
         if (startButton != null)
             startButton.gameObject.SetActive(false);
+
+        if (panelLobby != null)
+            panelLobby.SetActive(false);
     }
 
     private void OnEnable()
@@ -62,6 +66,14 @@ public class LobbyCanvas : MonoBehaviour
 
     private void HandlePlayerJoined(PlayerRef player, NetworkRunner runner)
     {
+        if (runner.IsServer)
+        {
+            runner.Spawn(PlayerDataNO, inputAuthority: player);
+            runner.Spawn(LobbyPlayerControllerNO, inputAuthority: player);
+        }
+
+        if (runner.LocalPlayer == player)
+            FusionHelper.LocalRunner = runner;
         if (panelLobby != null)
             panelLobby.SetActive(true);
 

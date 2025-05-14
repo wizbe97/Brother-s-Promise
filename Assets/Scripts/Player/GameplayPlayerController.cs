@@ -98,35 +98,10 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         _delta = Runner.DeltaTime;
         _time = Runner.SimulationTime;
 
-        if (GetInput<FrameInput>(out var input))
-        {
-            _frameInput.Move = input.Move;
-            _frameInput.JumpDown = input.JumpDown;
-            _frameInput.JumpHeld = input.JumpHeld;
-            _frameInput.DashDown = input.DashDown;
-            _frameInput.LadderHeld = input.LadderHeld;
-
-            if (_frameInput.JumpDown)
-            {
-                _jumpToConsume = true;
-                _timeJumpWasPressed = _time;
-            }
-
-            _dashToConsume |= _frameInput.DashDown;
-        }
-        else
-        {
-            _frameInput = default;
-        }
-
-        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
-        {
-            _canLatchLadder = true;
-            _mustReleaseLadderGrabBeforeLatch = false;
-        }
-
-        _wasClimbingLadderThisFrame = ClimbingLadder;
-
+        //Encapsulate logic into private helper methods Split complex logic into named methods and reduce clutter in FixedUpdateNetwork().
+        ProcessInput();
+        HandleLadderReleaseLogic();
+        CacheLadderClimbState();
         RemoveTransientVelocity();
         SetFrameData();
         CalculateCollisions();
@@ -143,6 +118,41 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         SaveCharacterState();
     }
 
+    private void ProcessInput()
+    {
+        if (GetInput<FrameInput>(out var input))
+        {
+            _frameInput.Move = input.Move;
+            _frameInput.JumpDown = input.JumpDown;
+            _frameInput.JumpHeld = input.JumpHeld;
+            _frameInput.DashDown = input.DashDown;
+            _frameInput.LadderHeld = input.LadderHeld;
+
+            if (input.JumpDown)
+            {
+                _jumpToConsume = true;
+                _timeJumpWasPressed = _time;
+            }
+
+            _dashToConsume |= input.DashDown;
+        }
+        else
+        {
+            _frameInput = default;
+        }
+    }
+    private void HandleLadderReleaseLogic()
+    {
+        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
+        {
+            _canLatchLadder = true;
+            _mustReleaseLadderGrabBeforeLatch = false;
+        }
+    }
+    private void CacheLadderClimbState()
+    {
+        _wasClimbingLadderThisFrame = ClimbingLadder;
+    }
 
 
     #endregion
@@ -205,7 +215,9 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         Right = new Vector2(Up.y, -Up.x);
         _framePosition = _rb.position;
 
-        _hasInputThisFrame = _frameInput.Move.x != 0;
+        // _hasInputThisFrame = _frameInput.Move.x != 0;
+        //Used descriptive variable naming, added Mathf.Approximately for safer float comparison
+        _hasInputThisFrame = !Mathf.Approximately(_frameInput.Move.x, 0f);
 
         Velocity = _rb.velocity;
         _trimmedFrameVelocity = new Vector2(Velocity.x, 0);
@@ -213,27 +225,34 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void RemoveTransientVelocity()
     {
-        var currentVelocity = _rb.velocity;
-        var velocityBeforeReduction = currentVelocity;
-
-        currentVelocity -= _totalTransientVelocityAppliedLastFrame;
-        SetVelocity(currentVelocity);
+        /*
+        Refactored for clarity by using meaningful variable names, grouping logic into clear steps,
+        and replacing compound conditions with descriptive flags to improve readability and maintainability.
+        */
+        Vector2 velocityBefore = _rb.velocity;
+        Vector2 velocityAfter = velocityBefore - _totalTransientVelocityAppliedLastFrame;
+        SetVelocity(velocityAfter);
 
         _frameTransientVelocity = Vector2.zero;
         _totalTransientVelocityAppliedLastFrame = Vector2.zero;
 
-        // If flung into a wall, dissolve the decay
-        // Replace this entire section with Boubourriquet's solution
-        var decay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
-        if ((velocityBeforeReduction.x < 0 && _decayingTransientVelocity.x < velocityBeforeReduction.x) ||
-            (velocityBeforeReduction.x > 0 && _decayingTransientVelocity.x > velocityBeforeReduction.x) ||
-            (velocityBeforeReduction.y < 0 && _decayingTransientVelocity.y < velocityBeforeReduction.y) ||
-            (velocityBeforeReduction.y > 0 && _decayingTransientVelocity.y > velocityBeforeReduction.y)) decay *= 5;
+        float baseDecay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
 
-        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, decay * _delta);
+        bool isOpposingX = (velocityBefore.x < 0 && _decayingTransientVelocity.x < velocityBefore.x) ||
+                           (velocityBefore.x > 0 && _decayingTransientVelocity.x > velocityBefore.x);
+        bool isOpposingY = (velocityBefore.y < 0 && _decayingTransientVelocity.y < velocityBefore.y) ||
+                           (velocityBefore.y > 0 && _decayingTransientVelocity.y > velocityBefore.y);
+
+        if (isOpposingX || isOpposingY)
+        {
+            baseDecay *= 5f;
+        }
+
+        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, baseDecay * _delta);
 
         _immediateMove = Vector2.zero;
     }
+
 
     private void CleanFrameData()
     {

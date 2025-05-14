@@ -147,7 +147,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     public override void Spawned()
     {
         base.Spawned();
-        if (!Object.HasInputAuthority)
+        if (Object.HasInputAuthority)
         {
             Runner.SetIsSimulated(Object, true);
         }
@@ -562,7 +562,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void ExecuteJump(JumpType jumpType)
     {
-        Debug.Log($"[GameplayController] Jump executed: {jumpType}");
         SetVelocity(_trimmedFrameVelocity);
         _endedJumpEarly = false;
         _bufferedJumpUsable = false;

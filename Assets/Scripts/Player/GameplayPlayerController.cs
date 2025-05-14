@@ -149,15 +149,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     #region Setup
 
-    public override void Spawned()
-    {
-        base.Spawned();
-        if (Object.HasInputAuthority)
-        {
-            Runner.SetIsSimulated(Object, true);
-        }
-    }
-
     private bool _cachedQueryMode, _cachedQueryTriggers;
     private GeneratedCharacterSize _character;
     private const float GRAVITY_SCALE = 1;

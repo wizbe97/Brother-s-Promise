@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsObject
+public class GameplayController : NetworkBehaviour, IPlayerController
 {
     #region References
 
@@ -13,7 +13,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
     private CapsuleCollider2D _airborneCollider;
     private ConstantForce2D _constantForce;
     private Rigidbody2D _rb;
-    private PlayerInput _playerInput;
 
     #endregion
 
@@ -78,15 +77,10 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     private void Awake()
     {
-        if (!TryGetComponent(out _playerInput)) _playerInput = gameObject.AddComponent<PlayerInput>();
-        if (!TryGetComponent(out _constantForce)) _constantForce = gameObject.AddComponent<ConstantForce2D>();
+        _constantForce = GetComponent<ConstantForce2D>();
 
         SetupCharacter();
-
-        PhysicsSimulator.Instance.AddPlayer(this);
     }
-
-    private void OnDestroy() => PhysicsSimulator.Instance.RemovePlayer(this);
 
     public void OnValidate()
     {
@@ -95,46 +89,71 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
             SetupCharacter();
 #endif
     }
-    public void TickUpdate(float delta, float time)
+
+    public override void FixedUpdateNetwork()
     {
-        _delta = delta;
-        _time = time;
+        if (!Active)
+            return;
 
-        GatherInput();
-    }
+        _delta = Runner.DeltaTime;
+        _time = Runner.SimulationTime;
 
-    public void TickFixedUpdate(float delta)
-    {
-        _delta = delta;
-
-        if (!Active) return;
-        _wasClimbingLadderThisFrame = ClimbingLadder;
-
-
+        //Encapsulate logic into private helper methods Split complex logic into named methods and reduce clutter in FixedUpdateNetwork().
+        ProcessInput();
+        HandleLadderReleaseLogic();
+        CacheLadderClimbState();
         RemoveTransientVelocity();
-
         SetFrameData();
-
         CalculateCollisions();
         CalculateDirection();
         CalculateJump();
-
         CalculateWalls();
         CalculateLadders();
-
         CalculateDash();
-
         CalculateExternalModifiers();
-
         TraceGround();
         Move();
-
         CalculateCrouch();
-
         CleanFrameData();
-
         SaveCharacterState();
     }
+
+    private void ProcessInput()
+    {
+        if (GetInput<FrameInput>(out var input))
+        {
+            _frameInput.Move = input.Move;
+            _frameInput.JumpDown = input.JumpDown;
+            _frameInput.JumpHeld = input.JumpHeld;
+            _frameInput.DashDown = input.DashDown;
+            _frameInput.LadderHeld = input.LadderHeld;
+
+            if (input.JumpDown)
+            {
+                _jumpToConsume = true;
+                _timeJumpWasPressed = _time;
+            }
+
+            _dashToConsume |= input.DashDown;
+        }
+        else
+        {
+            _frameInput = default;
+        }
+    }
+    private void HandleLadderReleaseLogic()
+    {
+        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
+        {
+            _canLatchLadder = true;
+            _mustReleaseLadderGrabBeforeLatch = false;
+        }
+    }
+    private void CacheLadderClimbState()
+    {
+        _wasClimbingLadderThisFrame = ClimbingLadder;
+    }
+
 
     #endregion
 
@@ -179,28 +198,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     private FrameInput _frameInput;
 
-    private void GatherInput()
-    {
-        _frameInput = _playerInput.Gather();
-
-        if (_frameInput.JumpDown)
-        {
-            _jumpToConsume = true;
-            _timeJumpWasPressed = _time;
-        }
-
-        if (_frameInput.DashDown)
-        {
-            _dashToConsume = true;
-        }
-
-        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
-        {
-            _canLatchLadder = true;
-            _mustReleaseLadderGrabBeforeLatch = false;
-        }
-    }
-
 
     #endregion
 
@@ -218,7 +215,9 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
         Right = new Vector2(Up.y, -Up.x);
         _framePosition = _rb.position;
 
-        _hasInputThisFrame = _frameInput.Move.x != 0;
+        // _hasInputThisFrame = _frameInput.Move.x != 0;
+        //Used descriptive variable naming, added Mathf.Approximately for safer float comparison
+        _hasInputThisFrame = !Mathf.Approximately(_frameInput.Move.x, 0f);
 
         Velocity = _rb.velocity;
         _trimmedFrameVelocity = new Vector2(Velocity.x, 0);
@@ -226,27 +225,34 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     private void RemoveTransientVelocity()
     {
-        var currentVelocity = _rb.velocity;
-        var velocityBeforeReduction = currentVelocity;
-
-        currentVelocity -= _totalTransientVelocityAppliedLastFrame;
-        SetVelocity(currentVelocity);
+        /*
+        Refactored for clarity by using meaningful variable names, grouping logic into clear steps,
+        and replacing compound conditions with descriptive flags to improve readability and maintainability.
+        */
+        Vector2 velocityBefore = _rb.velocity;
+        Vector2 velocityAfter = velocityBefore - _totalTransientVelocityAppliedLastFrame;
+        SetVelocity(velocityAfter);
 
         _frameTransientVelocity = Vector2.zero;
         _totalTransientVelocityAppliedLastFrame = Vector2.zero;
 
-        // If flung into a wall, dissolve the decay
-        // Replace this entire section with Boubourriquet's solution
-        var decay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
-        if ((velocityBeforeReduction.x < 0 && _decayingTransientVelocity.x < velocityBeforeReduction.x) ||
-            (velocityBeforeReduction.x > 0 && _decayingTransientVelocity.x > velocityBeforeReduction.x) ||
-            (velocityBeforeReduction.y < 0 && _decayingTransientVelocity.y < velocityBeforeReduction.y) ||
-            (velocityBeforeReduction.y > 0 && _decayingTransientVelocity.y > velocityBeforeReduction.y)) decay *= 5;
+        float baseDecay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
 
-        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, decay * _delta);
+        bool isOpposingX = (velocityBefore.x < 0 && _decayingTransientVelocity.x < velocityBefore.x) ||
+                           (velocityBefore.x > 0 && _decayingTransientVelocity.x > velocityBefore.x);
+        bool isOpposingY = (velocityBefore.y < 0 && _decayingTransientVelocity.y < velocityBefore.y) ||
+                           (velocityBefore.y > 0 && _decayingTransientVelocity.y > velocityBefore.y);
+
+        if (isOpposingX || isOpposingY)
+        {
+            baseDecay *= 5f;
+        }
+
+        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, baseDecay * _delta);
 
         _immediateMove = Vector2.zero;
     }
+
 
     private void CleanFrameData()
     {
@@ -554,30 +560,51 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
     private void CalculateJump()
     {
-        if ((_jumpToConsume || HasBufferedJump) && CanStand)
+        bool jumpRequested = _jumpToConsume || HasBufferedJump;
+
+        if (jumpRequested && CanStand)
         {
-            if (CanWallJump) ExecuteJump(JumpType.WallJump);
-            else if (ClimbingLadder) ExecuteJump(JumpType.LadderJump);
-            else if (_grounded) ExecuteJump(JumpType.Jump);
-            else if (CanUseCoyote) ExecuteJump(JumpType.Coyote);
-            else if (CanAirJump) ExecuteJump(JumpType.AirJump);
+            if (HasBufferedJump)
+                _bufferedJumpUsable = false;
+
+            if (_jumpToConsume)
+                _jumpToConsume = false;
+
+            if (CanWallJump)
+                ExecuteJump(JumpType.WallJump);
+            else if (ClimbingLadder)
+                ExecuteJump(JumpType.LadderJump);
+            else if (_grounded)
+                ExecuteJump(JumpType.Jump);
+            else if (CanUseCoyote)
+                ExecuteJump(JumpType.Coyote);
+            else if (CanAirJump)
+                ExecuteJump(JumpType.AirJump);
         }
 
-        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0) _endedJumpEarly = true; // Early end detection
+        // Handle early jump end (variable jump height)
+        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0)
+        {
+            _endedJumpEarly = true;
+        }
 
-
-        if (_time > _returnWallInputLossAfter) _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
+        // Handle restoring wall jump control
+        if (_time > _returnWallInputLossAfter)
+        {
+            _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
+        }
     }
+
 
     private void ExecuteJump(JumpType jumpType)
     {
         SetVelocity(_trimmedFrameVelocity);
         _endedJumpEarly = false;
-        _bufferedJumpUsable = false;
         _lastJumpExecutedTime = _time;
         _currentStepDownLength = 0;
 
-        if (ClimbingLadder) ToggleClimbingLadder(false);
+        if (ClimbingLadder)
+            ToggleClimbingLadder(false);
 
         switch (jumpType)
         {
@@ -598,6 +625,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
                 _wallJumpInputNerfPoint = 0;
                 _returnWallInputLossAfter = _time + Stats.WallJumpTotalInputLossTime;
                 _wallDirectionForJump = _wallDirThisFrame;
+
                 if (_isOnWall || IsPushingAgainstWall)
                 {
                     AddFrameForce(new Vector2(-_wallDirThisFrame, 1).normalized * Stats.WallJumpPower);
@@ -611,7 +639,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
             case JumpType.LadderJump:
                 var input = _frameInput.Move;
                 var ladderJumpDir = new Vector2(input.x, 1).normalized;
-                _mustReleaseLadderGrabBeforeLatch = true; // require release before latching
+                _mustReleaseLadderGrabBeforeLatch = true;
                 _canLatchLadder = false;
                 SetVelocity(Vector2.zero);
                 AddFrameForce(ladderJumpDir * Stats.JumpPower);
@@ -620,9 +648,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController, IPhysicsO
 
         Jumped?.Invoke(jumpType);
     }
-
-
-
 
     private void ResetAirJumps() => _airJumpsRemaining = Stats.MaxAirJumps;
 

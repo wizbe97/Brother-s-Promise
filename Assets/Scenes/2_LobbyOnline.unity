@@ -2040,6 +2040,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   launcher: {fileID: 454400920}
   sceneIndexToLoad: 2
+  PlayerDataNO:
+    RawGuidValue: ef45bf83fe2be9941862c1ede099a728
+  LobbyPlayerControllerNO:
+    RawGuidValue: b5e9a855f47a39349aefccf247b72789
   panelLobby: {fileID: 5708221723123456925}
   roomNameText: {fileID: 1103923711}
   startButton: {fileID: 7383437993159301490}

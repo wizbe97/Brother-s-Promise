@@ -10,34 +10,17 @@ using FusionUtilsEvents;
 public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
 {
     public static NetworkRunner LocalRunner;
-    public NetworkPrefabRef PlayerDataNO;
-    public NetworkPrefabRef LobbyPlayerControllerNO;
-
     public FusionEvent OnPlayerJoinedEvent;
     public FusionEvent OnPlayerLeftEvent;
     public FusionEvent OnRunnerShutDownEvent;
     public FusionEvent OnDisconnectedEvent;
     public FusionEvent OnSceneLoadedEvent;
+    public FusionEvent OnInputCollected;
+
+
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsServer)
-        {
-            Debug.Log($"[FusionHelper] Spawning PlayerData and LobbyPlayerController for player {player}");
-
-            // Spawn networked PlayerData
-            runner.Spawn(PlayerDataNO, inputAuthority: player);
-
-            // Spawn networked LobbyPlayerController
-            runner.Spawn(LobbyPlayerControllerNO, inputAuthority: player);
-        }
-
-        if (runner.LocalPlayer == player)
-        {
-            LocalRunner = runner;
-            Debug.Log("[FusionHelper] LocalRunner assigned");
-        }
-
         OnPlayerJoinedEvent?.Raise(player, runner);
     }
 
@@ -49,23 +32,26 @@ public class FusionHelper : MonoBehaviour, INetworkRunnerCallbacks
     public void OnShutdown(NetworkRunner runner, ShutdownReason reason) =>
         OnRunnerShutDownEvent?.Raise(default, runner);
 
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) // Host Disconnected
     {
-        Debug.Log("Host Disconnected");
         OnDisconnectedEvent?.Raise(default, runner);
     }
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-        Debug.Log("[FusionHelper] Scene Load Done");
         OnSceneLoadedEvent?.Raise(default, runner);
     }
+
 
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
-    public void OnInput(NetworkRunner runner, NetworkInput input) { }
+    public void OnInput(NetworkRunner runner, NetworkInput input)
+    {
+        input.Set(GameplayInputCollector.CachedInput);
+        GameplayInputCollector.CachedInput = default;
+    }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
     public void OnSceneLoadStart(NetworkRunner runner) { }

@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     public FusionEvent OnDisconnectedEvent;
 
     public NetworkRunner runner;
-
+    private Dictionary<PlayerRef, PlayerData> _playerDatas = new();
 
     public enum GameState
     {
@@ -37,13 +37,14 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(this.transform.parent ? this.transform.parent.gameObject : this.gameObject);
+            Destroy(transform.parent ? transform.parent.gameObject : gameObject);
             return;
         }
 
         Instance = this;
         DontDestroyOnLoad(transform.parent ? transform.parent.gameObject : gameObject);
     }
+
 
     private void OnEnable()
     {
@@ -59,24 +60,6 @@ public class GameManager : MonoBehaviour
         OnRunnerShutDownEvent?.RemoveResponse(OnRunnerShutdown);
         OnDisconnectedEvent?.RemoveResponse(OnDisconnected);
 
-    }
-
-    bool escaped = false;
-
-    private void Update()
-    {
-        if (State == GameState.Playing && Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (exitCanvas != null)
-            {
-                exitCanvas.SetActive(!exitCanvas.activeSelf);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape) && !escaped)
-        {
-            DisconnectAndReturnToOffline();
-        }
     }
 
     public void DisconnectAndReturnToOffline()
@@ -97,10 +80,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public PlayerData GetPlayerData(PlayerRef player)
+
+    public PlayerData GetPlayerData(PlayerRef playerRef)
     {
-        return _playerData.TryGetValue(player, out var data) ? data : null;
+        _playerDatas.TryGetValue(playerRef, out var playerData);
+        return playerData;
     }
+
+    public void RegisterPlayerData(PlayerRef playerRef, PlayerData playerData)
+    {
+        if (!_playerDatas.ContainsKey(playerRef))
+        {
+            _playerDatas.Add(playerRef, playerData);
+        }
+    }
+
 
     public void PlayerDisconnected(PlayerRef player, NetworkRunner runner)
     {
@@ -108,12 +102,27 @@ public class GameManager : MonoBehaviour
         {
             if (runner.IsServer)
             {
-                foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
+                if (SceneManager.GetActiveScene().name == "2_LobbyOnline")
                 {
-                    if (controller.Object != null && controller.Object.InputAuthority == player)
+                    foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
                     {
-                        runner.Despawn(controller.Object);
+                        if (controller.Object != null && controller.Object.InputAuthority == player)
+                        {
+                            runner.Despawn(controller.Object);
+                        }
                     }
+                }
+                else if (SceneManager.GetActiveScene().name == "4_Gameplay1")
+                {
+                    foreach (var controller in FindObjectsOfType<GameplayController>())
+                    {
+                        if (controller.Object != null && controller.Object.InputAuthority == player)
+                        {
+                            runner.Despawn(controller.Object);
+                        }
+                    }
+
+                    ExitSession();
                 }
             }
 
@@ -126,7 +135,6 @@ public class GameManager : MonoBehaviour
 
     private void OnDisconnected(PlayerRef _, NetworkRunner runner)
     {
-        Debug.Log("[GameManager] Detected disconnection, exiting session...");
         ExitSession();
     }
 
@@ -161,15 +169,13 @@ public class GameManager : MonoBehaviour
 
     public void ExitSession()
     {
-        Debug.Log("[GameManager] Exiting session and loading Main Menu immediately...");
-
         LevelManager?.ResetLoadedScene();
         SceneManager.LoadScene(0);
 
         if (exitCanvas != null)
             exitCanvas.SetActive(false);
 
-        _ = ShutdownRunner(); // shutdown quietly in background
+        _ = ShutdownRunner();
     }
 
 

@@ -98,7 +98,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         _delta = Runner.DeltaTime;
         _time = Runner.SimulationTime;
 
-        //Encapsulate logic into private helper methods Split complex logic into named methods and reduce clutter in FixedUpdateNetwork().
         ProcessInput();
         HandleLadderReleaseLogic();
         CacheLadderClimbState();
@@ -215,8 +214,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         Right = new Vector2(Up.y, -Up.x);
         _framePosition = _rb.position;
 
-        // _hasInputThisFrame = _frameInput.Move.x != 0;
-        //Used descriptive variable naming, added Mathf.Approximately for safer float comparison
         _hasInputThisFrame = !Mathf.Approximately(_frameInput.Move.x, 0f);
 
         Velocity = _rb.velocity;
@@ -225,10 +222,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void RemoveTransientVelocity()
     {
-        /*
-        Refactored for clarity by using meaningful variable names, grouping logic into clear steps,
-        and replacing compound conditions with descriptive flags to improve readability and maintainability.
-        */
         Vector2 velocityBefore = _rb.velocity;
         Vector2 velocityAfter = velocityBefore - _totalTransientVelocityAppliedLastFrame;
         SetVelocity(velocityAfter);

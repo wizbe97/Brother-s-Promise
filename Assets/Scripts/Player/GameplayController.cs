@@ -395,9 +395,16 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
     }
 
+    // Add inside GameplayController
+    private float _airborneStartTime;
+    private bool _leftGroundGoingUp;
+
+
+
     private void ToggleGrounded(bool grounded)
     {
         _grounded = grounded;
+
         if (grounded)
         {
             GroundedChanged?.Invoke(true, _lastFrameY);
@@ -410,6 +417,14 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _bufferedJumpUsable = true;
             ResetAirJumps();
             SetColliderMode(ColliderMode.Standard);
+
+            // --- ADD THIS: Log jump airborne time if left going upward ---
+            if (_leftGroundGoingUp)
+            {
+                float airborneDuration = (isOnline ? Runner.SimulationTime : Time.time) - _airborneStartTime;
+                Debug.Log($"[GameplayController] Jump airborne time: {airborneDuration:F2} seconds");
+                _leftGroundGoingUp = false;
+            }
         }
         else
         {
@@ -417,8 +432,15 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _timeLeftGrounded = _time;
             _rb.gravityScale = GRAVITY_SCALE;
             SetColliderMode(ColliderMode.Airborne);
+
+            // --- ADD THIS: Record when left ground ---
+            _airborneStartTime = isOnline ? Runner.SimulationTime : Time.time;
+            _leftGroundGoingUp = Velocity.y > 0f; // Only if leaving with positive Y (going up)
         }
     }
+
+
+
 
     private void SetColliderMode(ColliderMode mode)
     {

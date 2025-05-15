@@ -99,7 +99,7 @@ public class GameplayManager : NetworkBehaviour
     {
         Debug.Log("[GameplayManager] Handling offline spawning...");
 
-        foreach (var player in OfflinePlayerDataManager.players)
+        foreach (var player in PlayerDataOffline.players)
         {
             var prefab = (player.SelectedCharacter == 0) ? brother1OfflinePrefab : brother2OfflinePrefab;
             var spawnPos = GetSpawnPoint(player.SelectedCharacter).position;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public static class OfflinePlayerDataManager
+public static class PlayerDataOffline
 {
     public static List<OfflinePlayer> players = new List<OfflinePlayer>();
     

@@ -38,7 +38,7 @@ MonoBehaviour:
   BufferedJumpTime: 0.15
   CoyoteTime: 0.15
   JumpPower: 12
-  EndJumpEarlyExtraForceMultiplier: 3
+  EndJumpEarlyExtraForceMultiplier: 2
   MaxAirJumps: 3
   UseApexControl: 1
   ApexModifier: 1.25

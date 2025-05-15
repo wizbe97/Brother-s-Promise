@@ -71,14 +71,37 @@ public abstract class LobbyPlayerControllerBase : NetworkBehaviour
         }
     }
 
+    // --- New Cleaner Base Logic ---
+    protected virtual void UpdateDisplayName()
+    {
+        if (playerNameText != null)
+            playerNameText.text = GetDisplayName();
+    }
 
+    protected virtual void UpdateVisualPosition()
+    {
+        Transform targetParent = GetSelectedCharacter() == 0 ? imageBrother1 : imageBrother2;
+        if (transform.parent != targetParent)
+        {
+            Vector3 currentLocalPosition = transform.localPosition;
+            transform.SetParent(targetParent, false);
+            transform.localPosition = new Vector3(0f, currentLocalPosition.y, 0f);
+        }
+    }
+
+    protected virtual void UpdateReadyVisual()
+    {
+        if (backgroundImage != null)
+            backgroundImage.color = IsReady() ? Color.green : Color.white;
+    }
+
+    // --- Subclass Must Implement ---
     protected abstract void OnMoveLeft();
     protected abstract void OnMoveRight();
     protected abstract void OnReadyUp();
-    protected abstract void UpdateDisplayName();
-    protected abstract void UpdateVisualPosition();
-    protected abstract void UpdateReadyVisual();
     protected abstract void OnStartGamePressed();
     protected abstract void OnEscapePressed();
-
+    public abstract string GetDisplayName();
+    public abstract int GetSelectedCharacter();
+    public abstract bool IsReady();
 }

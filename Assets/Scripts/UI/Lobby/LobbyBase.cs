@@ -17,7 +17,6 @@ public abstract class LobbyBase : MonoBehaviour
     protected int saveSlot;
     protected bool isOnline;
 
-
     protected virtual void Start()
     {
         saveSlot = PlayerPrefs.GetInt("SaveSlot", 0);
@@ -44,15 +43,7 @@ public abstract class LobbyBase : MonoBehaviour
     protected void CheckIfAllReady()
     {
         bool canStart = CanStartGameInternal();
-        Debug.Log($"[LobbyBase] CheckIfAllReady: canStart={canStart}, characterLocksCount={(this is LobbyOffline offline ? offline.GetCharacterLockCount() : -1)}");
-
         UpdateStartButton(canStart);
-    }
-
-
-    protected virtual bool CanStartGameInternal()
-    {
-        return false;
     }
 
     protected void UpdateStartButton(bool canStart)
@@ -64,9 +55,8 @@ public abstract class LobbyBase : MonoBehaviour
     public virtual void StartGameButtonPressed()
     {
         if (sceneIndexToLoad <= 0)
-        {
-            Debug.LogError("[LobbyBase] Invalid scene index to load.");
             return;
-        }
     }
+
+    protected abstract bool CanStartGameInternal();
 }

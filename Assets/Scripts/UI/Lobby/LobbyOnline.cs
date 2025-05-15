@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Fusion;
 using FusionUtilsEvents;
 
@@ -24,14 +24,10 @@ public class LobbyOnline : LobbyBase
 
         launcher = FindObjectOfType<GameLauncher>();
         var levelManager = FindObjectOfType<LevelManager>();
+
         launcher.LaunchGame(GameMode.AutoHostOrClient, $"session_{saveSlot}", levelManager);
-
-       
-       // TEMP LOG FOR EASE
         GameManager.Instance.SetIsOnline(true);
-
     }
-
 
     private void OnEnable()
     {
@@ -59,11 +55,8 @@ public class LobbyOnline : LobbyBase
 
         if (runner.LocalPlayer == player)
             FusionHelper.LocalRunner = runner;
-        if (panelLobby != null)
-            panelLobby.SetActive(true);
 
-        if (roomNameText != null && runner.SessionInfo.IsValid)
-            roomNameText.text = $"Room: {runner.SessionInfo.Name}";
+        ShowLobbyPanel(runner.SessionInfo.IsValid ? runner.SessionInfo.Name : "Lobby");
 
         UpdateStartButtonOnline(player, runner);
     }
@@ -82,12 +75,13 @@ public class LobbyOnline : LobbyBase
             return;
         }
 
-        bool canStart = runner.IsServer && CanStartGame(runner);
+        bool canStart = runner.IsServer && CanStartGameInternal();
         UpdateStartButton(canStart);
     }
 
-    private bool CanStartGame(NetworkRunner runner)
+    protected override bool CanStartGameInternal()
     {
+        var runner = FusionHelper.LocalRunner;
         if (runner == null)
             return false;
 

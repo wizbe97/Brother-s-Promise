@@ -263,17 +263,6 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""bfe67101-d222-4cf2-9906-17fb9d46ddeb"",
-                    ""path"": ""<Keyboard>/enter"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Ready"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""1acea2fe-641a-4436-a98a-b6850bfae7a0"",
                     ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",

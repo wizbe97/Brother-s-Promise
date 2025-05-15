@@ -11,20 +11,12 @@ public class LobbyOffline : LobbyBase
     private HashSet<InputDevice> joinedDevices = new HashSet<InputDevice>();
     private Dictionary<int, LobbyPlayerControllerOffline> characterLocks = new();
 
-
     protected override void Start()
     {
         base.Start();
         isOnline = false;
-
-        if (!isOnline)
-        {
-            ShowLobbyPanel("Offline Co-Op");
-        }
-
-        // TEMP LOG FOR EASE
         GameManager.Instance.SetIsOnline(false);
-
+        ShowLobbyPanel("Offline Co-Op");
     }
 
     private void Update()
@@ -33,8 +25,7 @@ public class LobbyOffline : LobbyBase
 
         foreach (var device in InputSystem.devices)
         {
-            if (joinedDevices.Contains(device))
-                continue;
+            if (joinedDevices.Contains(device)) continue;
 
             if (DeviceJoinPressed(device))
             {
@@ -46,22 +37,16 @@ public class LobbyOffline : LobbyBase
     private bool DeviceJoinPressed(InputDevice device)
     {
         if (device is Keyboard keyboard)
-        {
             return keyboard.spaceKey.wasPressedThisFrame;
-        }
 
         if (device is Gamepad gamepad)
-        {
             return gamepad.buttonSouth.wasPressedThisFrame;
-        }
 
         return false;
     }
 
     private void SpawnLocalPlayer(InputDevice device)
     {
-        Debug.Log($"[LobbyOfflineManager] Spawning local player with device: {device.displayName}");
-
         GameObject newPlayer = Instantiate(lobbyPlayerPrefab, imageBrother1);
         var lobbyPlayer = newPlayer.GetComponent<LobbyPlayerControllerOffline>();
 
@@ -81,47 +66,28 @@ public class LobbyOffline : LobbyBase
     {
         if (player == null) return;
 
-        // Remove device from joined list
         if (joinedDevices.Contains(player.assignedDevice))
-        {
             joinedDevices.Remove(player.assignedDevice);
-        }
 
-        // Remove from characterLocks if ready
-        if (characterLocks.ContainsValue(player))
+        foreach (var key in new List<int>(characterLocks.Keys))
         {
-            foreach (var key in new List<int>(characterLocks.Keys))
+            if (characterLocks[key] == player)
             {
-                if (characterLocks[key] == player)
-                {
-                    characterLocks.Remove(key);
-                }
+                characterLocks.Remove(key);
             }
         }
 
-        // Destroy the player GameObject
         Destroy(player.gameObject);
-
-        // Recheck if start button should still be active
         CheckIfAllReady();
     }
-
 
     public void RegisterReady(LobbyPlayerControllerOffline player, int selectedCharacter)
     {
         if (!characterLocks.ContainsKey(selectedCharacter))
-        {
             characterLocks[selectedCharacter] = player;
-            Debug.Log($"[LobbyOffline] Registered player {player.name} as ready for character {selectedCharacter}");
-        }
-        else
-        {
-            Debug.LogWarning($"[LobbyOffline] Character {selectedCharacter} already locked by another player.");
-        }
 
         CheckIfAllReady();
     }
-
 
     public void UnregisterReady(LobbyPlayerControllerOffline player, int selectedCharacter)
     {
@@ -131,9 +97,9 @@ public class LobbyOffline : LobbyBase
         CheckIfAllReady();
     }
 
-    public bool CanStartGame()
+    public int GetCharacterLockCount()
     {
-        return startButton != null && startButton.gameObject.activeSelf;
+        return characterLocks.Count;
     }
 
     protected override bool CanStartGameInternal()
@@ -143,32 +109,30 @@ public class LobbyOffline : LobbyBase
 
         foreach (var player in characterLocks.Values)
         {
-            if (!player.IsReady)
+            if (!player.IsReady())
                 return false;
         }
 
         return true;
     }
 
-
-    public int GetCharacterLockCount()
+    public bool CanStartGame()
     {
-        return characterLocks.Count;
+        return startButton != null && startButton.gameObject.activeSelf;
     }
 
     public override void StartGameButtonPressed()
     {
         base.StartGameButtonPressed();
-        OfflinePlayerDataManager.players.Clear();
+
+        PlayerDataOffline.players.Clear();
 
         foreach (var entry in characterLocks)
         {
-            Debug.Log($"[StartGame] Saving device for {entry.Value.playerNameText.text}: {entry.Value.assignedDevice?.displayName}");
-
-            OfflinePlayerDataManager.players.Add(new OfflinePlayer
+            PlayerDataOffline.players.Add(new OfflinePlayer
             {
                 SelectedCharacter = entry.Key,
-                DisplayName = entry.Value.playerNameText.text,
+                DisplayName = entry.Value.GetDisplayName(),
                 Device = entry.Value.assignedDevice
             });
         }

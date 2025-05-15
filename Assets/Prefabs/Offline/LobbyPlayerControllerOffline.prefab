@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 6013782768328900786}
   - component: {fileID: 3888650642428374374}
   - component: {fileID: 9221854679153872165}
-  - component: {fileID: 3340672744771948057}
   - component: {fileID: 5618377304098047067}
+  - component: {fileID: -828181328635246633}
   m_Layer: 0
   m_Name: LobbyPlayerControllerOffline
   m_TagString: Untagged
@@ -78,25 +78,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3340672744771948057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3532894677898106454}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SortKey: 1784897879
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 5618377304098047067}
-  ForceRemoteRenderTimeframe: 0
 --- !u!114 &5618377304098047067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,6 +94,26 @@ MonoBehaviour:
   backgroundImage: {fileID: 9221854679153872165}
   imageBrother1: {fileID: 0}
   imageBrother2: {fileID: 0}
+  lobbyManager: {fileID: 0}
+--- !u!114 &-828181328635246633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3532894677898106454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 144041969
+  ObjectInterest: 1
+  Flags: 1
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 5618377304098047067}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &5607339230004059191
 GameObject:
   m_ObjectHideFlags: 0

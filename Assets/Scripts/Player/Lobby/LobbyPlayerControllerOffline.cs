@@ -10,15 +10,15 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
     private int selectedCharacter = 0;
     private string displayName;
     private bool isReady = false;
+    private int playerIndex;
+
     [HideInInspector] public LobbyOffline lobbyManager;
 
-
-    public void Initialize(int playerIndex)
+    public void Initialize(int index)
     {
+        playerIndex = index;
         playerNameText.text = $"Player {playerIndex + 1}";
         displayName = $"Player {playerIndex + 1}";
-
-
         selectedCharacter = 0;
         UpdateVisualPosition();
 
@@ -28,7 +28,6 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
             rect.anchoredPosition -= new Vector2(0, 200f);
         }
 
-        // Device pairing
         inputUser = InputUser.CreateUserWithoutPairedDevices();
         InputUser.PerformPairingWithDevice(assignedDevice, user: inputUser);
         inputUser.AssociateActionsWithUser(inputActions);
@@ -37,16 +36,14 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
     protected override void OnMoveLeft()
     {
         if (isReady) return;
-
-        selectedCharacter = 0; // Brother 1
+        selectedCharacter = 0;
         UpdateVisualPosition();
     }
 
     protected override void OnMoveRight()
     {
         if (isReady) return;
-
-        selectedCharacter = 1; // Brother 2
+        selectedCharacter = 1;
         UpdateVisualPosition();
     }
 
@@ -66,43 +63,10 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
         }
     }
 
-
-    protected override void UpdateDisplayName()
-    {
-        if (playerNameText != null)
-            playerNameText.text = displayName;
-    }
-
-    protected override void UpdateVisualPosition()
-    {
-        Transform targetParent = selectedCharacter == 0 ? imageBrother1 : imageBrother2;
-        if (transform.parent != targetParent)
-        {
-            Vector3 currentLocalPosition = transform.localPosition;
-            transform.SetParent(targetParent, false);
-            transform.localPosition = new Vector3(0f, currentLocalPosition.y, 0f);
-        }
-    }
-
-    protected override void UpdateReadyVisual()
-    {
-        if (backgroundImage != null)
-            backgroundImage.color = isReady ? Color.green : Color.white;
-    }
-
-    public int GetSelectedCharacter()
-    {
-        return selectedCharacter;
-    }
-
-    public bool IsReady => isReady;
-
     protected override void OnStartGamePressed()
     {
-        if (lobbyManager != null && lobbyManager.CanStartGame())
-        {
+        if (playerIndex != 0 && lobbyManager != null && lobbyManager.CanStartGame())
             lobbyManager.StartGameButtonPressed();
-        }
     }
 
 
@@ -110,19 +74,27 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
     {
         if (isReady)
         {
-            // If already ready, unready first
             isReady = false;
             UpdateReadyVisual();
             lobbyManager.UnregisterReady(this, selectedCharacter);
-            Debug.Log("[LobbyPlayerControllerOffline] Player un-readied via Escape");
         }
         else
-        {
-            // Otherwise, fully remove this player
-            Debug.Log("[LobbyPlayerControllerOffline] Player left the lobby via Escape");
-
             lobbyManager.RemovePlayer(this);
-        }
     }
 
+    // --- New Implementations for Base ---
+    public override string GetDisplayName()
+    {
+        return displayName;
+    }
+
+    public override int GetSelectedCharacter()
+    {
+        return selectedCharacter;
+    }
+
+    public override bool IsReady()
+    {
+        return isReady;
+    }
 }

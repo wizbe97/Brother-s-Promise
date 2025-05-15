@@ -65,7 +65,7 @@ public class LobbyPlayerControllerOffline : LobbyPlayerControllerBase
 
     protected override void OnStartGamePressed()
     {
-        if (playerIndex != 0 && lobbyManager != null && lobbyManager.CanStartGame())
+        if (playerIndex == 0 && lobbyManager != null && lobbyManager.CanStartGame())
             lobbyManager.StartGameButtonPressed();
     }
 

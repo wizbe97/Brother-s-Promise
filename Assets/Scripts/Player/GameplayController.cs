@@ -395,7 +395,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
     }
 
-    // Add inside GameplayController
     private float _airborneStartTime;
     private bool _leftGroundGoingUp;
 
@@ -418,7 +417,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             ResetAirJumps();
             SetColliderMode(ColliderMode.Standard);
 
-            // --- ADD THIS: Log jump airborne time if left going upward ---
             if (_leftGroundGoingUp)
             {
                 float airborneDuration = (isOnline ? Runner.SimulationTime : Time.time) - _airborneStartTime;
@@ -433,9 +431,8 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _rb.gravityScale = GRAVITY_SCALE;
             SetColliderMode(ColliderMode.Airborne);
 
-            // --- ADD THIS: Record when left ground ---
             _airborneStartTime = isOnline ? Runner.SimulationTime : Time.time;
-            _leftGroundGoingUp = Velocity.y > 0f; // Only if leaving with positive Y (going up)
+            _leftGroundGoingUp = Velocity.y > 0f; 
         }
     }
 

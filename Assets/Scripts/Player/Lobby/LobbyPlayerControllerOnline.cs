@@ -2,24 +2,12 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-using System.Collections;
 using Fusion;
-using System.Linq;
 
-public class OnlineLobbyPlayerController : NetworkBehaviour
+public class LobbyPlayerControllerOnline : LobbyPlayerControllerBase
 {
-    [Header("References")]
-    public TextMeshProUGUI playerNameText;
-    public Image backgroundImage;
-
-    [Header("Brother Images")]
-    public Transform imageBrother1;
-    public Transform imageBrother2;
-
     private PlayerData playerData;
-    private LobbyInputActions inputActions;
     private bool hasInputAuthority;
-
 
     public override void Spawned()
     {
@@ -39,18 +27,9 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         SetInitialParent();
     }
 
-    private void SetInitialParent()
+    protected override void SetInitialParent()
     {
-        if (imageBrother1 == null || imageBrother2 == null)
-        {
-            var lobbyCanvas = FindObjectOfType<LobbyCanvas>();
-            if (lobbyCanvas != null)
-            {
-                imageBrother1 = lobbyCanvas.imageBrother1;
-                imageBrother2 = lobbyCanvas.imageBrother2;
-            }
-        }
-
+        base.SetInitialParent();
         if (imageBrother1 != null)
         {
             transform.SetParent(imageBrother1, false);
@@ -71,56 +50,20 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
             UpdateReadyVisual();
         }
     }
-
-
-    private void Awake()
+    protected override void OnMoveLeft()
     {
-        inputActions = new LobbyInputActions();
-    }
-
-    private void Update()
-    {
-        if (playerData == null) return;
-
-        playerNameText.text = playerData.DisplayName.ToString();
-        UpdateVisualPosition();
-        UpdateReadyVisual();
-    }
-
-    private void OnEnable()
-    {
-        inputActions.Lobby.Enable();
-        inputActions.Lobby.MoveLeft.performed += ctx => OnMoveLeft();
-        inputActions.Lobby.MoveRight.performed += ctx => OnMoveRight();
-        inputActions.Lobby.Ready.performed += OnReadyUp;
-    }
-
-    private void OnDisable()
-    {
-        inputActions.Lobby.MoveLeft.performed -= ctx => OnMoveLeft();
-        inputActions.Lobby.MoveRight.performed -= ctx => OnMoveRight();
-        inputActions.Lobby.Ready.performed -= OnReadyUp;
-        inputActions.Lobby.Disable();
-    }
-
-    private void OnMoveLeft()
-    {
+        Debug.Log("Move Left attempted. HasInputAuthority: " + hasInputAuthority + "PlayerData: " + playerData + " IsReady: " + (playerData != null ? playerData.IsReady.ToString() : "null"));
         if (!hasInputAuthority || playerData == null || playerData.IsReady) return;
         playerData.RPC_SetCharacter(0);
-        UpdateVisualPosition();
-        UpdateReadyVisual();
     }
 
-    private void OnMoveRight()
+    protected override void OnMoveRight()
     {
         if (!hasInputAuthority || playerData == null || playerData.IsReady) return;
         playerData.RPC_SetCharacter(1);
-        UpdateVisualPosition();
-        UpdateReadyVisual();
     }
 
-
-    private void OnReadyUp(InputAction.CallbackContext ctx)
+    protected override void OnReadyUp()
     {
         if (!hasInputAuthority || playerData == null) return;
 
@@ -128,7 +71,13 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         playerData.RPC_SetReady(nextReadyState);
     }
 
-    private void UpdateVisualPosition()
+    protected override void UpdateDisplayName()
+    {
+        if (playerData != null)
+            playerNameText.text = playerData.DisplayName.ToString();
+    }
+
+    protected override void UpdateVisualPosition()
     {
         if (playerData == null) return;
 
@@ -141,8 +90,39 @@ public class OnlineLobbyPlayerController : NetworkBehaviour
         }
     }
 
-    private void UpdateReadyVisual()
+    protected override void UpdateReadyVisual()
     {
         backgroundImage.color = playerData.IsReady ? Color.green : Color.white;
     }
+
+    protected override void OnStartGamePressed()
+    {
+        if (!hasInputAuthority || playerData == null) return;
+
+        // Only the host should actually start the game
+        if (Runner.IsServer)
+        {
+            // Here you would normally trigger your host-only start logic
+            // For now just log it
+            Debug.Log("[LobbyPlayerControllerOnline] Host requested to start the game");
+
+            // Example: you could call a LobbyManagerOnline.StartGameButtonPressed() here
+            // LobbyManagerOnline.Instance.StartGameButtonPressed();
+        }
+    }
+
+    protected override void OnEscapePressed()
+    {
+        if (!hasInputAuthority || playerData == null) return;
+
+        // Player wants to leave the lobby
+        Debug.Log("[LobbyPlayerControllerOnline] Player pressed Escape to leave lobby");
+
+        // In online mode: you don't manually destroy their player.
+        // Instead you can tell Fusion to disconnect or de-spawn properly.
+
+        // Safest: Disconnect the player from the session
+        Runner.Disconnect(Object.InputAuthority);
+    }
+
 }

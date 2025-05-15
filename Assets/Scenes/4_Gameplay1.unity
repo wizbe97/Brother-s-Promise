@@ -171,10 +171,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e5e27ab68354c41a3de0124e9b5c25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  brother1Prefab:
-    RawGuidValue: 54dbeb077ab979842a50e2aebc59e337
-  brother2Prefab:
-    RawGuidValue: 9ad32a909f53d0c4a93a711b4b5a511e
+  brother1NetworkPrefab:
+    RawGuidValue: 5d656623fda88f04b9258bfacee8a35e
+  brother2NetworkPrefab:
+    RawGuidValue: d3c6c6fc499937b4b82e308e5c05ae74
+  brother1OfflinePrefab: {fileID: 7688675521678531137, guid: 54dbeb077ab979842a50e2aebc59e337, type: 3}
+  brother2OfflinePrefab: {fileID: 7688675521678531137, guid: 9ad32a909f53d0c4a93a711b4b5a511e, type: 3}
   spawnPoint1: {fileID: 1690707312}
   spawnPoint2: {fileID: 990896080}
   OnSceneLoaded: {fileID: 11400000, guid: 3ee5c443c79116a4d8b29dfe880251f3, type: 2}

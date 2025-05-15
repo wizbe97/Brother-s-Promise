@@ -49,7 +49,7 @@ public class PlayerData : NetworkBehaviour
         // Raise spawn event
         OnPlayerDataSpawnedEvent?.Raise(Object.InputAuthority, Runner);
 
-        DontDestroyOnLoad(this.gameObject);
+        DontDestroyOnLoad(gameObject);
     }
 
 

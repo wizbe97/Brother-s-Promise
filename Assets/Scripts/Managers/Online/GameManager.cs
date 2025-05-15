@@ -9,6 +9,8 @@ using FusionUtilsEvents;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public bool IsOnline { get; private set; }
+
 
     [Header("Events")]
     public FusionEvent OnPlayerLeftEvent;
@@ -62,6 +64,12 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public void SetIsOnline(bool online)
+    {
+        IsOnline = online;
+    }
+
+
     public void DisconnectAndReturnToOffline()
     {
         ExitSession();
@@ -104,7 +112,7 @@ public class GameManager : MonoBehaviour
             {
                 if (SceneManager.GetActiveScene().name == "2_LobbyOnline")
                 {
-                    foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
+                    foreach (var controller in FindObjectsOfType<LobbyPlayerControllerOnline>())
                     {
                         if (controller.Object != null && controller.Object.InputAuthority == player)
                         {

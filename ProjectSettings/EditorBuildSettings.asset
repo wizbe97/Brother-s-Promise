@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/2_LobbyOnline.unity
     guid: fead4fa8da75e5249a732f5bce0d77d5
   - enabled: 1
+    path: Assets/Scenes/3_LobbyOffline.unity
+    guid: 65af986cee80db64aa767d38672f6b5f
+  - enabled: 1
     path: Assets/Scenes/4_Gameplay1.unity
     guid: 64a5e7f6d62db1c4bb36b3397a698123
   m_configObjects: {}

@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 3023068025668959267}
   - component: {fileID: 4566225967186962220}
   m_Layer: 6
-  m_Name: Brother2
+  m_Name: Brother2Online
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SortKey: 1466460239
+  SortKey: 4071102284
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []

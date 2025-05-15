@@ -6,9 +6,6 @@ public class MainMenuUI : MonoBehaviour
     public GameObject panelMainMenu;
     public GameObject panelSaveSelection;
 
-    private bool isOnline = false;
-    private bool isLocal = false;
-    private bool isOffline = false;
 
     private void Start()
     {
@@ -18,25 +15,19 @@ public class MainMenuUI : MonoBehaviour
 
     public void PlayOnline()
     {
-        isOnline = true;
-        isLocal = false;
-        isOffline = false;
+        GameManager.Instance.SetIsOnline(true);
         ShowSaveSelection();
     }
 
     public void PlayLocal()
     {
-        isOnline = true;
-        isLocal = true;
-        isOffline = false;
+        GameManager.Instance.SetIsOnline(true);
         ShowSaveSelection();
     }
 
     public void PlayOffline()
     {
-        isOnline = false;
-        isLocal = false;
-        isOffline = true;
+        GameManager.Instance.SetIsOnline(false);
         ShowSaveSelection();
     }
 
@@ -49,9 +40,9 @@ public class MainMenuUI : MonoBehaviour
     public void SelectSaveSlot(int slotId)
     {
         PlayerPrefs.SetInt("SaveSlot", slotId);
-        PlayerPrefs.SetInt("PlayOnline", isOnline ? 1 : 0);
+        // NO need to save PlayOnline anymore! Just GameManager.Instance.IsOnline holds it.
 
-        if (isOnline)
+        if (GameManager.Instance.IsOnline)
         {
             SceneManager.LoadScene("2_LobbyOnline");
             Debug.Log("Loading Online Lobby Scene with Save Slot: " + slotId);
@@ -67,22 +58,17 @@ public class MainMenuUI : MonoBehaviour
     {
         panelSaveSelection.SetActive(false);
         panelMainMenu.SetActive(true);
-        isOnline = false;
-        isLocal = false;
-        isOffline = false;
+        GameManager.Instance.SetIsOnline(false);
     }
 
     public void OpenSettings()
     {
-        // TODO: Open settings panel
         Debug.Log("Open Settings Panel");
     }
 
     public void ExitGame()
     {
-        isOnline = false;
-        isLocal = false;
-        isOffline = false;
+        GameManager.Instance.SetIsOnline(false);
         Application.Quit();
     }
 }

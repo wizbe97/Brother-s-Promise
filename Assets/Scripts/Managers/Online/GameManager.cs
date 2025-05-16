@@ -88,7 +88,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public PlayerDataOnline GetPlayerData(PlayerRef playerRef)
     {
         _playerDatas.TryGetValue(playerRef, out var playerData);
@@ -183,7 +182,8 @@ public class GameManager : MonoBehaviour
         if (exitCanvas != null)
             exitCanvas.SetActive(false);
 
-        _ = ShutdownRunner();
+        if (runner != null)
+            _ = ShutdownRunner();
     }
 
 

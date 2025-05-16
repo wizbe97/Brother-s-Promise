@@ -5,6 +5,9 @@ public class MainMenuUI : MonoBehaviour
 {
     public GameObject panelMainMenu;
     public GameObject panelSaveSelection;
+    [SerializeField] private int onlineSceneIndex = 1;
+    [SerializeField] private int offlineSceneIndex = 2;
+    private int sceneIndexToLoad;
 
 
     private void Start()
@@ -15,20 +18,20 @@ public class MainMenuUI : MonoBehaviour
 
     public void PlayOnline()
     {
-        GameManager.Instance.SetIsOnline(true);
         ShowSaveSelection();
+        sceneIndexToLoad = onlineSceneIndex;
     }
 
     public void PlayLocal()
     {
-        GameManager.Instance.SetIsOnline(true);
         ShowSaveSelection();
+        sceneIndexToLoad = onlineSceneIndex;
     }
 
     public void PlayOffline()
     {
-        GameManager.Instance.SetIsOnline(false);
         ShowSaveSelection();
+        sceneIndexToLoad = offlineSceneIndex;
     }
 
     private void ShowSaveSelection()
@@ -40,25 +43,17 @@ public class MainMenuUI : MonoBehaviour
     public void SelectSaveSlot(int slotId)
     {
         PlayerPrefs.SetInt("SaveSlot", slotId);
-        // NO need to save PlayOnline anymore! Just GameManager.Instance.IsOnline holds it.
 
-        if (GameManager.Instance.IsOnline)
-        {
-            SceneManager.LoadScene("2_LobbyOnline");
-            Debug.Log("Loading Online Lobby Scene with Save Slot: " + slotId);
-        }
-        else
-        {
-            SceneManager.LoadScene("Lobby_Offline");
-            Debug.Log("Loading Offline Lobby Scene with Save Slot: " + slotId);
-        }
+        SceneManager.LoadScene(sceneIndexToLoad);
+        Debug.Log("Loading Online Lobby Scene with Save Slot: " + slotId);
     }
 
     public void BackToMainMenu()
     {
         panelSaveSelection.SetActive(false);
         panelMainMenu.SetActive(true);
-        GameManager.Instance.SetIsOnline(false);
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetIsOnline(false);
     }
 
     public void OpenSettings()
@@ -68,7 +63,8 @@ public class MainMenuUI : MonoBehaviour
 
     public void ExitGame()
     {
-        GameManager.Instance.SetIsOnline(false);
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetIsOnline(false);
         Application.Quit();
     }
 }

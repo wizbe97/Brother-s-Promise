@@ -10,6 +10,7 @@ public class LobbyOffline : LobbyBase
 
     private HashSet<InputDevice> joinedDevices = new HashSet<InputDevice>();
     private Dictionary<int, LobbyPlayerControllerOffline> characterLocks = new();
+    private bool waitingForExitConfirmation = false;
 
     protected override void Start()
     {
@@ -28,10 +29,13 @@ public class LobbyOffline : LobbyBase
             if (joinedDevices.Contains(device)) continue;
 
             if (DeviceJoinPressed(device))
-            {
                 SpawnLocalPlayer(device);
-            }
         }
+
+        if (joinedDevices.Count == 0 && Input.GetKeyDown(KeyCode.Escape) && waitingForExitConfirmation)
+            GameManager.Instance?.ExitSession();
+        else
+            waitingForExitConfirmation = true;
     }
 
     private bool DeviceJoinPressed(InputDevice device)
@@ -72,9 +76,7 @@ public class LobbyOffline : LobbyBase
         foreach (var key in new List<int>(characterLocks.Keys))
         {
             if (characterLocks[key] == player)
-            {
                 characterLocks.Remove(key);
-            }
         }
 
         Destroy(player.gameObject);

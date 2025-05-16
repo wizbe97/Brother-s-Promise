@@ -79,11 +79,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private float _delta, _time;
     bool isOnline;
     private OfflinePlayerInput _offlinePlayerInput;
-    public override void Spawned()
-    {
-        if (Object.HasInputAuthority)
-            Runner.SetIsSimulated(Object, true);
-    }
 
     private void Awake()
     {

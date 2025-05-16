@@ -34,11 +34,11 @@ MonoBehaviour:
   AirFrictionMultiplier: 0.6
   DirectionCorrectionMultiplier: 3
   MaxWalkableSlope: 50
-  ExtraConstantGravity: 30
+  ExtraConstantGravity: 25
   BufferedJumpTime: 0.15
   CoyoteTime: 0.15
   JumpPower: 12
-  EndJumpEarlyExtraForceMultiplier: 2.5
+  EndJumpEarlyExtraForceMultiplier: 3.25
   MaxAirJumps: 0
   UseApexControl: 1
   ApexModifier: 1.5

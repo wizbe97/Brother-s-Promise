@@ -1,14 +1,10 @@
 using System;
-using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Users;
-
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
-public class GameplayController : NetworkBehaviour, IPlayerController
+public class PlayerController : MonoBehaviour, IPlayerController2, IPhysicsObject2
 {
     #region References
 
@@ -16,13 +12,14 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private CapsuleCollider2D _airborneCollider;
     private ConstantForce2D _constantForce;
     private Rigidbody2D _rb;
+    private TESTPlayerInput _playerInput;
 
     #endregion
 
     #region Interface
 
     [field: SerializeField] public PlayerStats Stats { get; private set; }
-    public ControllerState State { get; private set; }
+    public ControllerState2 State { get; private set; }
     public event Action<JumpType> Jumped;
     public event Action<bool, float> GroundedChanged;
     public event Action<bool, Vector2> DashChanged;
@@ -46,7 +43,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         _forceToApplyThisFrame += force;
     }
 
-    public void LoadState(ControllerState state)
+    public void LoadState(ControllerState2 state)
     {
         RepositionImmediately(state.Position);
         _rb.rotation = state.Rotation;
@@ -77,36 +74,18 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region Loop
 
     private float _delta, _time;
-    bool isOnline;
-    private OfflinePlayerInput _offlinePlayerInput;
-    public override void Spawned()
-    {
-        if (Object.HasInputAuthority)
-            Runner.SetIsSimulated(Object, true);
-    }
 
     private void Awake()
     {
-        _constantForce = GetComponent<ConstantForce2D>();
-        isOnline = GameManager.Instance.IsOnline;
+        if (!TryGetComponent(out _playerInput)) _playerInput = gameObject.AddComponent<TESTPlayerInput>();
+        if (!TryGetComponent(out _constantForce)) _constantForce = gameObject.AddComponent<ConstantForce2D>();
+
         SetupCharacter();
-    }
-    public void InitializeInput(InputDevice device, int selectedCharacter)
-    {
-        if (device == null)
-        {
-            Debug.LogError("[GameplayController] No input device assigned!");
-            return;
-        }
 
-        if (!isOnline)
-        {
-            if (!TryGetComponent(out _offlinePlayerInput))
-                _offlinePlayerInput = gameObject.AddComponent<OfflinePlayerInput>();
-
-            _offlinePlayerInput.Initialize(device, selectedCharacter);
-        }
+        PhysicsSimulator.Instance.AddPlayer(this);
     }
+
+    private void OnDestroy() => PhysicsSimulator.Instance.RemovePlayer(this);
 
     public void OnValidate()
     {
@@ -115,125 +94,46 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             SetupCharacter();
 #endif
     }
-
-    private void Update()
+    public void TickUpdate(float delta, float time)
     {
-        if (!isOnline)
-            GatherOfflineInput();
+        _delta = delta;
+        _time = time;
 
+        GatherInput();
     }
 
-    private void FixedUpdate()
+    public void TickFixedUpdate(float delta)
     {
-        if (isOnline) return;
-        TickMovement();
-    }
+        _delta = delta;
 
-    public override void FixedUpdateNetwork()
-    {
-        if (!isOnline) return;
-        TickMovement();
-    }
-
-    private void TickMovement()
-    {
         if (!Active) return;
+        _wasClimbingLadderThisFrame = ClimbingLadder;
 
-        _delta = isOnline ? Runner.DeltaTime : Time.fixedDeltaTime;
-        _time = isOnline ? Runner.SimulationTime : Time.time;
 
-        if (isOnline)
-            ProcessInput();
-        HandleLadderReleaseLogic();
-        CacheLadderClimbState();
         RemoveTransientVelocity();
+
         SetFrameData();
+
         CalculateCollisions();
         CalculateDirection();
         CalculateJump();
+
         CalculateWalls();
         CalculateLadders();
+
         CalculateDash();
+
         CalculateExternalModifiers();
+
         TraceGround();
         Move();
+
         CalculateCrouch();
+
         CleanFrameData();
+
         SaveCharacterState();
     }
-
-    private void GatherOfflineInput()
-    {
-        var input = _offlinePlayerInput.GatherFrameInput();
-
-        _frameInput.Move = input.Move;
-        _frameInput.JumpDown = input.JumpDown;
-        _frameInput.JumpHeld = input.JumpHeld;
-        _frameInput.DashDown = input.DashDown;
-        _frameInput.LadderHeld = input.LadderHeld;
-
-        if (input.JumpDown)
-        {
-            _jumpToConsume = true;
-            _timeJumpWasPressed = _time;
-        }
-
-        if (input.DashDown)
-        {
-            _dashToConsume = true;
-        }
-
-        if (!input.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
-        {
-            _canLatchLadder = true;
-            _mustReleaseLadderGrabBeforeLatch = false;
-        }
-    }
-
-    private void ProcessInput()
-    {
-        if (!Active)
-            return;
-
-        if (isOnline)
-        {
-            if (GetInput<FrameInput>(out var input))
-            {
-                _frameInput.Move = input.Move;
-                _frameInput.JumpDown = input.JumpDown;
-                _frameInput.JumpHeld = input.JumpHeld;
-                _frameInput.DashDown = input.DashDown;
-                _frameInput.LadderHeld = input.LadderHeld;
-
-                if (input.JumpDown)
-                {
-                    _jumpToConsume = true;
-                    _timeJumpWasPressed = _time;
-                }
-
-                _dashToConsume |= input.DashDown;
-            }
-            else
-            {
-                _frameInput = default;
-            }
-        }
-    }
-
-
-    private void HandleLadderReleaseLogic()
-    {
-        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
-        {
-            _canLatchLadder = true;
-            _mustReleaseLadderGrabBeforeLatch = false;
-        }
-    }
-    private void CacheLadderClimbState()
-    {
-        _wasClimbingLadderThisFrame = ClimbingLadder;
-    }
-
 
     #endregion
 
@@ -276,7 +176,31 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     #region Input
 
-    private FrameInput _frameInput;
+    private FrameInput2 _frameInput;
+
+    private void GatherInput()
+    {
+        _frameInput = _playerInput.Gather();
+
+        if (_frameInput.JumpDown)
+        {
+            _jumpToConsume = true;
+            _timeJumpWasPressed = _time;
+        }
+
+        if (_frameInput.DashDown)
+        {
+            _dashToConsume = true;
+        }
+
+        // Reset latch permission if ladder grab was released
+        if (!_frameInput.LadderHeld && _mustReleaseLadderGrabBeforeLatch)
+        {
+            _canLatchLadder = true;
+            _mustReleaseLadderGrabBeforeLatch = false;
+        }
+    }
+
 
 
     #endregion
@@ -295,7 +219,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         Right = new Vector2(Up.y, -Up.x);
         _framePosition = _rb.position;
 
-        _hasInputThisFrame = !Mathf.Approximately(_frameInput.Move.x, 0f);
+        _hasInputThisFrame = _frameInput.Move.x != 0;
 
         Velocity = _rb.velocity;
         _trimmedFrameVelocity = new Vector2(Velocity.x, 0);
@@ -303,30 +227,27 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void RemoveTransientVelocity()
     {
-        Vector2 velocityBefore = _rb.velocity;
-        Vector2 velocityAfter = velocityBefore - _totalTransientVelocityAppliedLastFrame;
-        SetVelocity(velocityAfter);
+        var currentVelocity = _rb.velocity;
+        var velocityBeforeReduction = currentVelocity;
+
+        currentVelocity -= _totalTransientVelocityAppliedLastFrame;
+        SetVelocity(currentVelocity);
 
         _frameTransientVelocity = Vector2.zero;
         _totalTransientVelocityAppliedLastFrame = Vector2.zero;
 
-        float baseDecay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
+        // If flung into a wall, dissolve the decay
+        // Replace this entire section with Boubourriquet's solution
+        var decay = Stats.Friction * Stats.AirFrictionMultiplier * Stats.ExternalVelocityDecayRate;
+        if ((velocityBeforeReduction.x < 0 && _decayingTransientVelocity.x < velocityBeforeReduction.x) ||
+            (velocityBeforeReduction.x > 0 && _decayingTransientVelocity.x > velocityBeforeReduction.x) ||
+            (velocityBeforeReduction.y < 0 && _decayingTransientVelocity.y < velocityBeforeReduction.y) ||
+            (velocityBeforeReduction.y > 0 && _decayingTransientVelocity.y > velocityBeforeReduction.y)) decay *= 5;
 
-        bool isOpposingX = (velocityBefore.x < 0 && _decayingTransientVelocity.x < velocityBefore.x) ||
-                           (velocityBefore.x > 0 && _decayingTransientVelocity.x > velocityBefore.x);
-        bool isOpposingY = (velocityBefore.y < 0 && _decayingTransientVelocity.y < velocityBefore.y) ||
-                           (velocityBefore.y > 0 && _decayingTransientVelocity.y > velocityBefore.y);
-
-        if (isOpposingX || isOpposingY)
-        {
-            baseDecay *= 5f;
-        }
-
-        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, baseDecay * _delta);
+        _decayingTransientVelocity = Vector2.MoveTowards(_decayingTransientVelocity, Vector2.zero, decay * _delta);
 
         _immediateMove = Vector2.zero;
     }
-
 
     private void CleanFrameData()
     {
@@ -398,7 +319,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private void ToggleGrounded(bool grounded)
     {
         _grounded = grounded;
-
         if (grounded)
         {
             GroundedChanged?.Invoke(true, _lastFrameY);
@@ -559,7 +479,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             Stats.AutoAttachToLadders ||
             (_frameInput.Move.y > Stats.VerticalDeadZoneThreshold && _frameInput.LadderHeld) ||
             (!_grounded && _frameInput.Move.y < -Stats.VerticalDeadZoneThreshold && _frameInput.LadderHeld) ||
-            _frameInput.LadderHeld
+            (_frameInput.LadderHeld)
         );
 
     private bool ShouldDismountLadder => !_frameInput.LadderHeld || !_ladderHit;
@@ -621,6 +541,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private float _timeJumpWasPressed;
     private Vector2 _forceToApplyThisFrame;
     private bool _endedJumpEarly;
+    private float _endedJumpForce;
     private int _airJumpsRemaining;
     private bool _wallJumpCoyoteUsable;
     private bool _coyoteUsable;
@@ -634,52 +555,30 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void CalculateJump()
     {
-        bool jumpRequested = _jumpToConsume || HasBufferedJump;
-
-        if (jumpRequested && CanStand)
+        if ((_jumpToConsume || HasBufferedJump) && CanStand)
         {
-            if (HasBufferedJump)
-                _bufferedJumpUsable = false;
-
-            if (_jumpToConsume)
-                _jumpToConsume = false;
-
-            if (CanWallJump)
-                ExecuteJump(JumpType.WallJump);
-            else if (ClimbingLadder)
-                ExecuteJump(JumpType.LadderJump);
-            else if (_grounded)
-                ExecuteJump(JumpType.Jump);
-            else if (CanUseCoyote)
-                ExecuteJump(JumpType.Coyote);
-            else if (CanAirJump)
-                ExecuteJump(JumpType.AirJump);
-
+            if (CanWallJump) ExecuteJump(JumpType.WallJump);
+            else if (ClimbingLadder) ExecuteJump(JumpType.LadderJump);
+            else if (_grounded) ExecuteJump(JumpType.Jump);
+            else if (CanUseCoyote) ExecuteJump(JumpType.Coyote);
+            else if (CanAirJump) ExecuteJump(JumpType.AirJump);
         }
 
-        // Handle early jump end (variable jump height)
-        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0)
-        {
-            _endedJumpEarly = true;
-        }
+        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0) _endedJumpEarly = true; // Early end detection
 
-        // Handle restoring wall jump control
-        if (_time > _returnWallInputLossAfter)
-        {
-            _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
-        }
+
+        if (_time > _returnWallInputLossAfter) _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
     }
-
 
     private void ExecuteJump(JumpType jumpType)
     {
         SetVelocity(_trimmedFrameVelocity);
         _endedJumpEarly = false;
+        _bufferedJumpUsable = false;
         _lastJumpExecutedTime = _time;
         _currentStepDownLength = 0;
 
-        if (ClimbingLadder)
-            ToggleClimbingLadder(false);
+        if (ClimbingLadder) ToggleClimbingLadder(false);
 
         switch (jumpType)
         {
@@ -700,7 +599,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
                 _wallJumpInputNerfPoint = 0;
                 _returnWallInputLossAfter = _time + Stats.WallJumpTotalInputLossTime;
                 _wallDirectionForJump = _wallDirThisFrame;
-
                 if (_isOnWall || IsPushingAgainstWall)
                 {
                     AddFrameForce(new Vector2(-_wallDirThisFrame, 1).normalized * Stats.WallJumpPower);
@@ -714,7 +612,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             case JumpType.LadderJump:
                 var input = _frameInput.Move;
                 var ladderJumpDir = new Vector2(input.x, 1).normalized;
-                _mustReleaseLadderGrabBeforeLatch = true;
+                _mustReleaseLadderGrabBeforeLatch = true; // require release before latching
                 _canLatchLadder = false;
                 SetVelocity(Vector2.zero);
                 AddFrameForce(ladderJumpDir * Stats.JumpPower);
@@ -723,6 +621,9 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
         Jumped?.Invoke(jumpType);
     }
+
+
+
 
     private void ResetAirJumps() => _airJumpsRemaining = Stats.MaxAirJumps;
 
@@ -821,12 +722,12 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private Vector2 _totalTransientVelocityAppliedLastFrame;
     private Vector2 _frameSpeedModifier, _currentFrameSpeedModifier = Vector2.one;
     private const float SLOPE_ANGLE_FOR_EXACT_MOVEMENT = 0.7f;
-    private IPhysicsMover _lastPlatform;
+    private IPhysicsMover2 _lastPlatform;
     private float _lastFrameY;
 
     private void TraceGround()
     {
-        IPhysicsMover currentPlatform = null;
+        IPhysicsMover2 currentPlatform = null;
 
         if (_grounded && !IsWithinJumpClearance)
         {
@@ -870,7 +771,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
     }
 
-    private void ApplyMoverExitVelocity(IPhysicsMover mover)
+    private void ApplyMoverExitVelocity(IPhysicsMover2 mover)
     {
         var platformVel = mover.TakeOffVelocity;
         if (platformVel.y < 0) platformVel.y *= Stats.NegativeYVelocityNegation;
@@ -1036,7 +937,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     private void SaveCharacterState()
     {
-        State = new ControllerState
+        State = new ControllerState2
         {
             Position = _framePosition,
             Rotation = _rb.rotation,
@@ -1048,20 +949,20 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region External Triggers
 
     private const int MAX_ACTIVE_MOVERS = 5;
-    private readonly HashSet<IPhysicsMover> _activatedMovers = new(MAX_ACTIVE_MOVERS);
-    private readonly HashSet<ISpeedModifier> _modifiers = new();
+    private readonly HashSet<IPhysicsMover2> _activatedMovers = new(MAX_ACTIVE_MOVERS);
+    private readonly HashSet<ISpeedModifier2> _modifiers = new();
     private Vector2 _frameSpeedModifierVelocity;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.TryGetComponent(out ISpeedModifier modifier)) _modifiers.Add(modifier);
-        else if (other.TryGetComponent(out IPhysicsMover mover) && !mover.RequireGrounding) _activatedMovers.Add(mover);
+        if (other.TryGetComponent(out ISpeedModifier2 modifier)) _modifiers.Add(modifier);
+        else if (other.TryGetComponent(out IPhysicsMover2 mover) && !mover.RequireGrounding) _activatedMovers.Add(mover);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.TryGetComponent(out ISpeedModifier modifier)) _modifiers.Remove(modifier);
-        else if (other.TryGetComponent(out IPhysicsMover mover)) _activatedMovers.Remove(mover);
+        if (other.TryGetComponent(out ISpeedModifier2 modifier)) _modifiers.Remove(modifier);
+        else if (other.TryGetComponent(out IPhysicsMover2 mover)) _activatedMovers.Remove(mover);
     }
 
     private void CalculateExternalModifiers()
@@ -1122,7 +1023,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #endregion
 }
 
-public enum JumpType
+public enum JumpType2
 {
     Jump,
     Coyote,
@@ -1131,10 +1032,10 @@ public enum JumpType
     LadderJump
 }
 
-public interface IPlayerController
+public interface IPlayerController2
 {
     public PlayerStats Stats { get; }
-    public ControllerState State { get; }
+    public ControllerState2 State { get; }
     public event Action<JumpType> Jumped;
     public event Action<bool, float> GroundedChanged;
     public event Action<bool, Vector2> DashChanged;
@@ -1155,12 +1056,12 @@ public interface IPlayerController
     public void AddFrameForce(Vector2 force, bool resetVelocity = false);
 
     // Utility
-    public void LoadState(ControllerState state);
+    public void LoadState(ControllerState2 state);
     public void RepositionImmediately(Vector2 position, bool resetVelocity = false);
     public void TogglePlayer(bool on);
 }
 
-public interface ISpeedModifier
+public interface ISpeedModifier2
 {
     public bool InAir { get; }
     public bool OnGround { get; }
@@ -1168,7 +1069,7 @@ public interface ISpeedModifier
 }
 
 // Used to save and load character state
-public struct ControllerState
+public struct ControllerState2
 {
     public Vector2 Position;
     public float Rotation;

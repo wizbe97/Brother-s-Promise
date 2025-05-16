@@ -653,18 +653,17 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
 
         // Handle early jump end (variable jump height)
-        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0) || Velocity.y < 0)
-        {
+        bool canEarlyEnd = _time > _jumpStartHoldTime + MIN_JUMP_HOLD_TIME;
+
+        if ((!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && Velocity.y > 0 && canEarlyEnd) || Velocity.y < 0)
             _endedJumpEarly = true;
-        }
 
         // Handle restoring wall jump control
         if (_time > _returnWallInputLossAfter)
-        {
             _wallJumpInputNerfPoint = Mathf.MoveTowards(_wallJumpInputNerfPoint, 1, _delta / Stats.WallJumpInputLossReturnTime);
-        }
     }
-
+    private const float MIN_JUMP_HOLD_TIME = 0.03f;
+    private float _jumpStartHoldTime;
 
     private void ExecuteJump(JumpType jumpType)
     {
@@ -717,6 +716,9 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
 
         Jumped?.Invoke(jumpType);
+        _jumpStartHoldTime = _time;
+
+
     }
 
     private void ResetAirJumps() => _airJumpsRemaining = Stats.MaxAirJumps;

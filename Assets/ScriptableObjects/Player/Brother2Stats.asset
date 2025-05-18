@@ -17,7 +17,7 @@ MonoBehaviour:
     m_Bits: 64
   CollisionLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 1152
   CharacterSize:
     Height: 1.25
     Width: 0.9
@@ -55,6 +55,7 @@ MonoBehaviour:
   ClimbableLayer:
     serializedVersion: 2
     m_Bits: 0
+  WallStickTime: 0.25
   WallJumpTotalInputLossTime: 0.2
   WallJumpInputLossReturnTime: 0.5
   RequireInputPush: 0

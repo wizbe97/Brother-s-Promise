@@ -118,6 +118,9 @@ public class PlayerStats : ScriptableObject
     [Tooltip("Which layers are climbable (for wall interactions).")]
     public LayerMask ClimbableLayer;
 
+    [Tooltip("Time the player sticks to the wall before sliding down, if no vertical input is given.")]
+    public float WallStickTime = 0.25f;
+
     [Tooltip("Time after jumping off a wall during which input is temporarily ignored.")]
     public float WallJumpTotalInputLossTime = 0.2f;
 

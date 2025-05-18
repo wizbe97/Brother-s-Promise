@@ -17,7 +17,7 @@ MonoBehaviour:
     m_Bits: 64
   CollisionLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 1152
   CharacterSize:
     Height: 1.25
     Width: 0.9
@@ -54,15 +54,16 @@ MonoBehaviour:
   AllowWalls: 1
   ClimbableLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
+  WallStickTime: 0.25
   WallJumpTotalInputLossTime: 0.2
   WallJumpInputLossReturnTime: 0.5
   RequireInputPush: 0
-  WallJumpPower: {x: 20, y: 18}
-  WallPushPower: {x: 20, y: 18}
+  WallJumpPower: {x: 25, y: 22}
+  WallPushPower: {x: 25, y: 22}
   WallClimbSpeed: 5
-  WallFallAcceleration: 5
-  WallPopForce: 10
+  WallFallAcceleration: 10
+  WallPopForce: 15
   WallCoyoteTime: 0.3
   WallDetectorRange: 0.15
   AllowLadders: 1

@@ -5,6 +5,7 @@ public class DashJumpOffPlayer : MonoBehaviour
 {
     [SerializeField] private float freezeDuration = 0.2f;
     [SerializeField] private float p1RecoilForce = 8f;
+    [SerializeField] private float p1VerticalBoostForce = 3f; // NEW
     [SerializeField] private float wallJumpEnableDuration = 0.25f;
 
     private GameplayController _p1;
@@ -44,8 +45,9 @@ public class DashJumpOffPlayer : MonoBehaviour
 
         yield return new WaitForSeconds(freezeDuration);
 
-        // Apply optional recoil force to P1
-        _p1.AddFrameForce(dashDirection * p1RecoilForce);
+        // Apply recoil + upward force to P1
+        Vector2 recoil = dashDirection * p1RecoilForce + Vector2.up * p1VerticalBoostForce;
+        _p1.AddFrameForce(recoil);
 
         // Simulate wall stick on P2
         p2.WallDirection = (int)Mathf.Sign(dashDirection.x);

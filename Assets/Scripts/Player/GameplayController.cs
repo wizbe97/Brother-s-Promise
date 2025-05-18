@@ -467,6 +467,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region Walls
 
     private const float WALL_REATTACH_COOLDOWN = 0.2f;
+    private float _wallStickCounter;
 
     private float _wallJumpInputNerfPoint;
     private int _wallDirectionForJump;

@@ -43,7 +43,7 @@ MonoBehaviour:
   UseApexControl: 1
   ApexModifier: 1.5
   ApexDetectionThreshold: 0.32
-  AllowDash: 1
+  AllowDash: 0
   DashVelocity: 15
   DashDuration: 0.1
   DashCooldown: 0.5

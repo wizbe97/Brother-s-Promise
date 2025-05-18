@@ -3399,6 +3399,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panelMainMenu: {fileID: 2457621903886194519}
   panelSaveSelection: {fileID: 8487969902111721808}
+  onlineSceneIndex: 1
+  offlineSceneIndex: 2
 --- !u!114 &7878719497161038619
 MonoBehaviour:
   m_ObjectHideFlags: 0

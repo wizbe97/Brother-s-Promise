@@ -37,7 +37,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     public Vector2 Input => _frameInput.Move;
     public Vector2 GroundNormal { get; private set; }
     public Vector2 Velocity { get; private set; }
-    public int WallDirection { get; private set; }
+    public int WallDirection { get; set; }
     public bool ClimbingLadder { get; private set; }
 
     public void AddFrameForce(Vector2 force, bool resetVelocity = false)
@@ -513,7 +513,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             Stats.ClimbableLayer);
     }
 
-    private void ToggleOnWall(bool on)
+    public void ToggleOnWall(bool on)
     {
         _isOnWall = on;
 
@@ -733,6 +733,10 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private bool _dashing;
     private float _startedDashing;
     private float _nextDashTime;
+    public bool IsDashing() => _dashing;
+    public Vector2 GetDashDirection() => _dashVel.normalized;
+    public bool IsGrounded() => _grounded;
+    public void GiveBonusJump() => ResetAirJumps();
 
     private void CalculateDash()
     {
@@ -1022,7 +1026,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     }
 
 
-    private void SetVelocity(Vector2 newVel)
+    public void SetVelocity(Vector2 newVel)
     {
         _rb.velocity = newVel;
         Velocity = newVel;

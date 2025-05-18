@@ -2,7 +2,7 @@ using UnityEngine;
 using Fusion;
 using FusionUtilsEvents;
 
-public class PlayerData : NetworkBehaviour
+public class PlayerDataOnline : NetworkBehaviour
 {
     [Networked] public NetworkString<_16> DisplayName { get; set; }
     [Networked] public int SelectedCharacter { get; set; }
@@ -49,7 +49,7 @@ public class PlayerData : NetworkBehaviour
         // Raise spawn event
         OnPlayerDataSpawnedEvent?.Raise(Object.InputAuthority, Runner);
 
-        DontDestroyOnLoad(this.gameObject);
+        DontDestroyOnLoad(gameObject);
     }
 
 

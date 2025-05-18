@@ -28,21 +28,21 @@ MonoBehaviour:
   HorizontalDeadZoneThreshold: 0.1
   PositionCorrectionMode: 0
   BaseSpeed: 7
-  Acceleration: 50
-  Friction: 45
+  Acceleration: 80
+  Friction: 70
   MaxFallSpeed: 20
   AirFrictionMultiplier: 0.6
   DirectionCorrectionMultiplier: 3
   MaxWalkableSlope: 50
-  ExtraConstantGravity: 80
+  ExtraConstantGravity: 25
   BufferedJumpTime: 0.15
   CoyoteTime: 0.15
   JumpPower: 12
-  EndJumpEarlyExtraForceMultiplier: 3
-  MaxAirJumps: 3
+  EndJumpEarlyExtraForceMultiplier: 3.25
+  MaxAirJumps: 0
   UseApexControl: 1
-  ApexModifier: 1.25
-  ApexDetectionThreshold: 1.79
+  ApexModifier: 1.5
+  ApexDetectionThreshold: 0.32
   AllowDash: 1
   DashVelocity: 15
   DashDuration: 0.1

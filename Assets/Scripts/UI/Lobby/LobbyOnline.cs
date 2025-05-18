@@ -1,26 +1,16 @@
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.SceneManagement;
 using Fusion;
 using FusionUtilsEvents;
 
-public class LobbyCanvas : MonoBehaviour
+public class LobbyOnline : LobbyBase
 {
     public GameLauncher launcher;
 
-    [Header("Scene Setup")]
-    public int sceneIndexToLoad;
+    [Header("Network Prefabs")]
     public NetworkPrefabRef PlayerDataNO;
     public NetworkPrefabRef LobbyPlayerControllerNO;
-
-    [Header("UI References")]
-    [SerializeField] private GameObject panelLobby;
-    [SerializeField] private TextMeshProUGUI roomNameText;
-    [SerializeField] private Button startButton;
-    public Transform imageBrother1;
-    public Transform imageBrother2;
 
     [Header("Fusion Events")]
     public FusionEvent OnPlayerJoinedEvent;
@@ -28,40 +18,31 @@ public class LobbyCanvas : MonoBehaviour
     public FusionEvent OnShutdownEvent;
     public FusionEvent OnPlayerDataSpawnedEvent;
 
-    private void Start()
+    protected override void Start()
     {
-        int saveSlot = PlayerPrefs.GetInt("SaveSlot", 0);
-        bool isOnline = PlayerPrefs.GetInt("PlayOnline", 0) == 1;
-        Debug.Log($"[LobbyCanvas] SaveSlot={saveSlot}, PlayOnline={isOnline}");
+        base.Start();
 
-        if (isOnline)
-        {
-            launcher = FindObjectOfType<GameLauncher>();
-            var levelManager = FindObjectOfType<LevelManager>();
-            launcher.LaunchGame(GameMode.AutoHostOrClient, $"session_{saveSlot}", levelManager);
-        }
+        launcher = FindObjectOfType<GameLauncher>();
+        var levelManager = FindObjectOfType<LevelManager>();
 
-        if (startButton != null)
-            startButton.gameObject.SetActive(false);
-
-        if (panelLobby != null)
-            panelLobby.SetActive(false);
+        launcher.LaunchGame(GameMode.AutoHostOrClient, $"session_{saveSlot}", levelManager);
+        GameManager.Instance.SetIsOnline(true);
     }
 
     private void OnEnable()
     {
         OnPlayerJoinedEvent.RegisterResponse(HandlePlayerJoined);
-        OnPlayerLeftEvent.RegisterResponse(UpdateStartButton);
+        OnPlayerLeftEvent.RegisterResponse(UpdateStartButtonOnline);
         OnShutdownEvent.RegisterResponse(HandleShutdown);
-        OnPlayerDataSpawnedEvent.RegisterResponse(UpdateStartButton);
+        OnPlayerDataSpawnedEvent.RegisterResponse(UpdateStartButtonOnline);
     }
 
     private void OnDisable()
     {
         OnPlayerJoinedEvent.RemoveResponse(HandlePlayerJoined);
-        OnPlayerLeftEvent.RemoveResponse(UpdateStartButton);
+        OnPlayerLeftEvent.RemoveResponse(UpdateStartButtonOnline);
         OnShutdownEvent.RemoveResponse(HandleShutdown);
-        OnPlayerDataSpawnedEvent.RemoveResponse(UpdateStartButton);
+        OnPlayerDataSpawnedEvent.RemoveResponse(UpdateStartButtonOnline);
     }
 
     private void HandlePlayerJoined(PlayerRef player, NetworkRunner runner)
@@ -74,15 +55,11 @@ public class LobbyCanvas : MonoBehaviour
 
         if (runner.LocalPlayer == player)
             FusionHelper.LocalRunner = runner;
-        if (panelLobby != null)
-            panelLobby.SetActive(true);
 
-        if (roomNameText != null && runner.SessionInfo.IsValid)
-            roomNameText.text = $"Room: {runner.SessionInfo.Name}";
+        ShowLobbyPanel(runner.SessionInfo.IsValid ? runner.SessionInfo.Name : "Lobby");
 
-        UpdateStartButton(player, runner);
+        UpdateStartButtonOnline(player, runner);
     }
-
 
     private void HandleShutdown(PlayerRef player, NetworkRunner runner)
     {
@@ -90,17 +67,21 @@ public class LobbyCanvas : MonoBehaviour
             panelLobby.SetActive(false);
     }
 
-    private void UpdateStartButton(PlayerRef _, NetworkRunner runner)
+    private void UpdateStartButtonOnline(PlayerRef _, NetworkRunner runner)
     {
-        if (startButton == null || runner == null)
+        if (runner == null)
+        {
+            UpdateStartButton(false);
             return;
+        }
 
-        bool canStart = runner.IsServer && CanStartGame(runner);
-        startButton.gameObject.SetActive(canStart);
+        bool canStart = runner.IsServer && CanStartGameInternal();
+        UpdateStartButton(canStart);
     }
 
-    private bool CanStartGame(NetworkRunner runner)
+    protected override bool CanStartGameInternal()
     {
+        var runner = FusionHelper.LocalRunner;
         if (runner == null)
             return false;
 
@@ -123,27 +104,18 @@ public class LobbyCanvas : MonoBehaviour
         return selected.Count == 2;
     }
 
-    public void StartGameButtonPressed()
+    public override void StartGameButtonPressed()
     {
         if (!FusionHelper.LocalRunner.IsServer)
             return;
 
-        if (sceneIndexToLoad <= 0)
-        {
-            Debug.LogError("[LobbyCanvas] Invalid scene index to load.");
-            return;
-        }
-
         FusionHelper.LocalRunner.SessionInfo.IsOpen = false;
         FusionHelper.LocalRunner.SessionInfo.IsVisible = false;
 
-        // Get the scene name from build index
+        base.StartGameButtonPressed();
+
         string scenePath = SceneUtility.GetScenePathByBuildIndex(sceneIndexToLoad);
         string sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
-
-        // Now call LoadScene with sceneName (string)
         FusionHelper.LocalRunner.LoadScene(sceneName);
     }
-
-
 }

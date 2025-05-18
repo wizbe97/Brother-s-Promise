@@ -9,6 +9,8 @@ using FusionUtilsEvents;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public bool IsOnline { get; private set; }
+
 
     [Header("Events")]
     public FusionEvent OnPlayerLeftEvent;
@@ -16,7 +18,7 @@ public class GameManager : MonoBehaviour
     public FusionEvent OnDisconnectedEvent;
 
     public NetworkRunner runner;
-    private Dictionary<PlayerRef, PlayerData> _playerDatas = new();
+    private Dictionary<PlayerRef, PlayerDataOnline> _playerDatas = new();
 
     public enum GameState
     {
@@ -31,7 +33,7 @@ public class GameManager : MonoBehaviour
     public LevelManager LevelManager;
     [SerializeField] private GameObject exitCanvas;
 
-    private Dictionary<PlayerRef, PlayerData> _playerData = new();
+    private Dictionary<PlayerRef, PlayerDataOnline> _playerData = new();
 
     private void Awake()
     {
@@ -62,6 +64,12 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public void SetIsOnline(bool online)
+    {
+        IsOnline = online;
+    }
+
+
     public void DisconnectAndReturnToOffline()
     {
         ExitSession();
@@ -72,7 +80,7 @@ public class GameManager : MonoBehaviour
         State = state;
     }
 
-    public void SetPlayerDataObject(PlayerRef player, PlayerData data)
+    public void SetPlayerDataObject(PlayerRef player, PlayerDataOnline data)
     {
         if (!_playerData.ContainsKey(player))
         {
@@ -80,14 +88,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    public PlayerData GetPlayerData(PlayerRef playerRef)
+    public PlayerDataOnline GetPlayerData(PlayerRef playerRef)
     {
         _playerDatas.TryGetValue(playerRef, out var playerData);
         return playerData;
     }
 
-    public void RegisterPlayerData(PlayerRef playerRef, PlayerData playerData)
+    public void RegisterPlayerData(PlayerRef playerRef, PlayerDataOnline playerData)
     {
         if (!_playerDatas.ContainsKey(playerRef))
         {
@@ -104,7 +111,7 @@ public class GameManager : MonoBehaviour
             {
                 if (SceneManager.GetActiveScene().name == "2_LobbyOnline")
                 {
-                    foreach (var controller in FindObjectsOfType<OnlineLobbyPlayerController>())
+                    foreach (var controller in FindObjectsOfType<LobbyPlayerControllerOnline>())
                     {
                         if (controller.Object != null && controller.Object.InputAuthority == player)
                         {
@@ -175,7 +182,8 @@ public class GameManager : MonoBehaviour
         if (exitCanvas != null)
             exitCanvas.SetActive(false);
 
-        _ = ShutdownRunner();
+        if (runner != null)
+            _ = ShutdownRunner();
     }
 
 

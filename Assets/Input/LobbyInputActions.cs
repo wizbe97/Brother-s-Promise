@@ -40,7 +40,7 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""MoveRight"",
                     ""type"": ""Button"",
                     ""id"": ""3a134d2f-56f2-4246-9371-af3ab9ce31e0"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -49,7 +49,25 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Ready"",
                     ""type"": ""Button"",
                     ""id"": ""7c3e328e-409f-4cb5-929c-a66eb2cdb481"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Escape"",
+                    ""type"": ""Button"",
+                    ""id"": ""f53629e1-2256-4dcd-a3be-91373c2d5dcc"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""StartGame"",
+                    ""type"": ""Button"",
+                    ""id"": ""e7c6bb69-3a2e-40cc-b0ac-3c2e9b84965a"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -126,6 +144,17 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""3d14f20a-d4a7-4747-876f-8dbfe7496144"",
                     ""path"": ""<XInputController>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""68b1e7b4-1324-4b1c-b327-03f8cf420455"",
+                    ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -212,19 +241,19 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""de4f8770-6162-4581-9a0a-92c760d0dc2a"",
-                    ""path"": ""<Keyboard>/space"",
+                    ""id"": ""a27d69b0-d3dc-4f7b-92aa-2e364104561e"",
+                    ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Ready"",
+                    ""action"": ""MoveRight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""bfe67101-d222-4cf2-9906-17fb9d46ddeb"",
-                    ""path"": ""<Keyboard>/enter"",
+                    ""id"": ""de4f8770-6162-4581-9a0a-92c760d0dc2a"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -251,6 +280,61 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Ready"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4dabd4e4-a413-4b90-ad32-621fd0089912"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""00c41da6-c9d2-454a-90b3-4be5406d085f"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""12c18874-71d3-40f5-a077-a8857d26ce99"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a27ba472-a86b-486c-93aa-3bd5dc1ba4b2"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StartGame"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""879a36c1-6f00-42ff-8a07-7cf9975911b1"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StartGame"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -281,6 +365,8 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
         m_Lobby_MoveLeft = m_Lobby.FindAction("MoveLeft", throwIfNotFound: true);
         m_Lobby_MoveRight = m_Lobby.FindAction("MoveRight", throwIfNotFound: true);
         m_Lobby_Ready = m_Lobby.FindAction("Ready", throwIfNotFound: true);
+        m_Lobby_Escape = m_Lobby.FindAction("Escape", throwIfNotFound: true);
+        m_Lobby_StartGame = m_Lobby.FindAction("StartGame", throwIfNotFound: true);
     }
 
     ~@LobbyInputActions()
@@ -350,6 +436,8 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Lobby_MoveLeft;
     private readonly InputAction m_Lobby_MoveRight;
     private readonly InputAction m_Lobby_Ready;
+    private readonly InputAction m_Lobby_Escape;
+    private readonly InputAction m_Lobby_StartGame;
     public struct LobbyActions
     {
         private @LobbyInputActions m_Wrapper;
@@ -357,6 +445,8 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
         public InputAction @MoveLeft => m_Wrapper.m_Lobby_MoveLeft;
         public InputAction @MoveRight => m_Wrapper.m_Lobby_MoveRight;
         public InputAction @Ready => m_Wrapper.m_Lobby_Ready;
+        public InputAction @Escape => m_Wrapper.m_Lobby_Escape;
+        public InputAction @StartGame => m_Wrapper.m_Lobby_StartGame;
         public InputActionMap Get() { return m_Wrapper.m_Lobby; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -375,6 +465,12 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
             @Ready.started += instance.OnReady;
             @Ready.performed += instance.OnReady;
             @Ready.canceled += instance.OnReady;
+            @Escape.started += instance.OnEscape;
+            @Escape.performed += instance.OnEscape;
+            @Escape.canceled += instance.OnEscape;
+            @StartGame.started += instance.OnStartGame;
+            @StartGame.performed += instance.OnStartGame;
+            @StartGame.canceled += instance.OnStartGame;
         }
 
         private void UnregisterCallbacks(ILobbyActions instance)
@@ -388,6 +484,12 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
             @Ready.started -= instance.OnReady;
             @Ready.performed -= instance.OnReady;
             @Ready.canceled -= instance.OnReady;
+            @Escape.started -= instance.OnEscape;
+            @Escape.performed -= instance.OnEscape;
+            @Escape.canceled -= instance.OnEscape;
+            @StartGame.started -= instance.OnStartGame;
+            @StartGame.performed -= instance.OnStartGame;
+            @StartGame.canceled -= instance.OnStartGame;
         }
 
         public void RemoveCallbacks(ILobbyActions instance)
@@ -419,5 +521,7 @@ public partial class @LobbyInputActions: IInputActionCollection2, IDisposable
         void OnMoveLeft(InputAction.CallbackContext context);
         void OnMoveRight(InputAction.CallbackContext context);
         void OnReady(InputAction.CallbackContext context);
+        void OnEscape(InputAction.CallbackContext context);
+        void OnStartGame(InputAction.CallbackContext context);
     }
 }

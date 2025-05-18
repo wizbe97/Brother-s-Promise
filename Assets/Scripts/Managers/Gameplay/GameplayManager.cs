@@ -5,9 +5,13 @@ using System.Linq;
 
 public class GameplayManager : NetworkBehaviour
 {
-    [Header("Character Prefabs")]
-    [SerializeField] private NetworkPrefabRef brother1Prefab;
-    [SerializeField] private NetworkPrefabRef brother2Prefab;
+    [Header("Character Prefabs (Online)")]
+    [SerializeField] private NetworkPrefabRef brother1NetworkPrefab;
+    [SerializeField] private NetworkPrefabRef brother2NetworkPrefab;
+
+    [Header("Character Prefabs (Offline)")]
+    [SerializeField] private GameObject brother1OfflinePrefab;
+    [SerializeField] private GameObject brother2OfflinePrefab;
 
     [Header("Spawn Points")]
     [SerializeField] private Transform spawnPoint1;
@@ -15,12 +19,12 @@ public class GameplayManager : NetworkBehaviour
 
     [Header("Fusion Events")]
     public FusionEvent OnSceneLoaded;
-    public FusionEvent OnPlayerLeft;
 
     private static GameplayManager _instance;
     public static GameplayManager Instance => _instance;
 
-    private NetworkRunner _cachedRunner;
+    private bool _isOnline;
+
 
     private void Awake()
     {
@@ -32,12 +36,14 @@ public class GameplayManager : NetworkBehaviour
 
         _instance = this;
         DontDestroyOnLoad(gameObject);
+    }
 
-        _cachedRunner = FusionHelper.LocalRunner;
-        if (_cachedRunner == null)
-        {
-            Debug.LogError("[GameplayManager] Failed to find LocalRunner in Awake. Spawns might fail!");
-        }
+
+    private void Start()
+    {
+        _isOnline = GameManager.Instance.IsOnline;
+        if (!_isOnline)
+            HandleOfflineSpawning();
     }
 
     private void OnEnable()
@@ -52,35 +58,30 @@ public class GameplayManager : NetworkBehaviour
 
     private void SceneLoaded(PlayerRef _, NetworkRunner runner)
     {
-        Debug.Log("[GameplayManager] SceneLoaded event received.");
-
-        if (runner == null)
+        if (_isOnline)
         {
-            Debug.LogError("[GameplayManager] Runner is NULL. Cannot spawn players.");
-            return;
+            HandleOnlineSpawning(runner);
         }
-
-        if (!runner.IsServer)
+        else
         {
-            Debug.Log("[GameplayManager] Not the server. Skipping player spawn.");
-            return;
+            HandleOfflineSpawning();
         }
+    }
 
-        Debug.Log("[GameplayManager] Server is spawning players...");
+    private void HandleOnlineSpawning(NetworkRunner runner)
+    {
+        Debug.Log("[GameplayManager] Handling online spawning...");
+        if (runner == null || !runner.IsServer)
+            return;
 
         int index = 0;
         foreach (var player in runner.ActivePlayers)
         {
             var playerData = GameManager.Instance.GetPlayerData(player);
-            if (playerData == null)
-            {
-                Debug.LogWarning($"[GameplayManager] No PlayerData found for {player}. Skipping.");
-                continue;
-            }
 
             NetworkPrefabRef prefabToSpawn = playerData.SelectedCharacter == 0
-                ? brother1Prefab
-                : brother2Prefab;
+                ? brother1NetworkPrefab
+                : brother2NetworkPrefab;
 
             Transform spawnPoint = GetSpawnPoint(index);
 
@@ -88,21 +89,28 @@ public class GameplayManager : NetworkBehaviour
                 prefabToSpawn,
                 spawnPoint.position,
                 spawnPoint.rotation,
-                player 
+                player
             );
-
-            if (spawnedObject != null)
-            {
-                Debug.Log($"[GameplayManager] Spawned {prefabToSpawn} for {player} at {spawnPoint.position}");
-            }
-            else
-            {
-                Debug.LogError($"[GameplayManager] Failed to spawn prefab for {player}");
-            }
-
             index++;
         }
     }
+
+    private void HandleOfflineSpawning()
+    {
+        Debug.Log("[GameplayManager] Handling offline spawning...");
+
+        foreach (var player in PlayerDataOffline.players)
+        {
+            var prefab = (player.SelectedCharacter == 0) ? brother1OfflinePrefab : brother2OfflinePrefab;
+            var spawnPos = GetSpawnPoint(player.SelectedCharacter).position;
+
+            var go = Instantiate(prefab, spawnPos, Quaternion.identity);
+            var controller = go.GetComponent<GameplayController>();
+            controller.InitializeInput(player.Device, player.SelectedCharacter);
+        }
+    }
+
+
 
     private Transform GetSpawnPoint(int index)
     {

@@ -5,10 +5,10 @@ public class MainMenuUI : MonoBehaviour
 {
     public GameObject panelMainMenu;
     public GameObject panelSaveSelection;
+    [SerializeField] private int onlineSceneIndex = 1;
+    [SerializeField] private int offlineSceneIndex = 2;
+    private int sceneIndexToLoad;
 
-    private bool isOnline = false;
-    private bool isLocal = false;
-    private bool isOffline = false;
 
     private void Start()
     {
@@ -18,26 +18,20 @@ public class MainMenuUI : MonoBehaviour
 
     public void PlayOnline()
     {
-        isOnline = true;
-        isLocal = false;
-        isOffline = false;
         ShowSaveSelection();
+        sceneIndexToLoad = onlineSceneIndex;
     }
 
     public void PlayLocal()
     {
-        isOnline = true;
-        isLocal = true;
-        isOffline = false;
         ShowSaveSelection();
+        sceneIndexToLoad = onlineSceneIndex;
     }
 
     public void PlayOffline()
     {
-        isOnline = false;
-        isLocal = false;
-        isOffline = true;
         ShowSaveSelection();
+        sceneIndexToLoad = offlineSceneIndex;
     }
 
     private void ShowSaveSelection()
@@ -49,40 +43,28 @@ public class MainMenuUI : MonoBehaviour
     public void SelectSaveSlot(int slotId)
     {
         PlayerPrefs.SetInt("SaveSlot", slotId);
-        PlayerPrefs.SetInt("PlayOnline", isOnline ? 1 : 0);
 
-        if (isOnline)
-        {
-            SceneManager.LoadScene("2_LobbyOnline");
-            Debug.Log("Loading Online Lobby Scene with Save Slot: " + slotId);
-        }
-        else
-        {
-            SceneManager.LoadScene("Lobby_Offline");
-            Debug.Log("Loading Offline Lobby Scene with Save Slot: " + slotId);
-        }
+        SceneManager.LoadScene(sceneIndexToLoad);
+        Debug.Log("Loading Online Lobby Scene with Save Slot: " + slotId);
     }
 
     public void BackToMainMenu()
     {
         panelSaveSelection.SetActive(false);
         panelMainMenu.SetActive(true);
-        isOnline = false;
-        isLocal = false;
-        isOffline = false;
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetIsOnline(false);
     }
 
     public void OpenSettings()
     {
-        // TODO: Open settings panel
         Debug.Log("Open Settings Panel");
     }
 
     public void ExitGame()
     {
-        isOnline = false;
-        isLocal = false;
-        isOffline = false;
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetIsOnline(false);
         Application.Quit();
     }
 }

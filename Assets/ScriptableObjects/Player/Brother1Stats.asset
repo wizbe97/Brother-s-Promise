@@ -55,7 +55,7 @@ MonoBehaviour:
   ClimbableLayer:
     serializedVersion: 2
     m_Bits: 1024
-  WallStickTime: 0.25
+  WallStickTime: 20
   WallJumpTotalInputLossTime: 0.2
   WallJumpInputLossReturnTime: 0.5
   RequireInputPush: 0

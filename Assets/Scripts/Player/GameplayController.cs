@@ -37,7 +37,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     public Vector2 Input => _frameInput.Move;
     public Vector2 GroundNormal { get; private set; }
     public Vector2 Velocity { get; private set; }
-    public int WallDirection { get; private set; }
+    public int WallDirection { get; set; }
     public bool ClimbingLadder { get; private set; }
 
     public void AddFrameForce(Vector2 force, bool resetVelocity = false)
@@ -390,6 +390,8 @@ public class GameplayController : NetworkBehaviour, IPlayerController
         }
     }
 
+    [SerializeField] private Collider2D headPlatformCollider;
+
     private void ToggleGrounded(bool grounded)
     {
         _grounded = grounded;
@@ -406,6 +408,8 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _bufferedJumpUsable = true;
             ResetAirJumps();
             SetColliderMode(ColliderMode.Standard);
+            if (headPlatformCollider != null)
+                headPlatformCollider.enabled = false;
         }
         else
         {
@@ -413,6 +417,8 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _timeLeftGrounded = _time;
             _rb.gravityScale = GRAVITY_SCALE;
             SetColliderMode(ColliderMode.Airborne);
+            if (headPlatformCollider != null)
+                headPlatformCollider.enabled = true;
         }
     }
 
@@ -467,6 +473,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region Walls
 
     private const float WALL_REATTACH_COOLDOWN = 0.2f;
+    private float _wallStickCounter;
 
     private float _wallJumpInputNerfPoint;
     private int _wallDirectionForJump;
@@ -513,7 +520,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             Stats.ClimbableLayer);
     }
 
-    private void ToggleOnWall(bool on)
+    public void ToggleOnWall(bool on)
     {
         _isOnWall = on;
 
@@ -523,6 +530,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _bufferedJumpUsable = true;
             _wallJumpCoyoteUsable = true;
             WallDirection = _wallDirThisFrame;
+            _wallStickCounter = Stats.WallStickTime; // Initialize when grabbing wall
         }
         else
         {
@@ -530,16 +538,18 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             _canGrabWallAfter = _time + WALL_REATTACH_COOLDOWN;
             _rb.gravityScale = GRAVITY_SCALE;
             WallDirection = 0;
+            _wallStickCounter = 0; // Reset when letting go
             if (Velocity.y > 0)
             {
                 AddFrameForce(new Vector2(0, Stats.WallPopForce), true);
             }
 
-            ResetAirJumps(); // so that we can air jump even if we didn't leave via a wall jump
+            ResetAirJumps(); // So that we can air jump even if we didn’t leave via wall jump
         }
 
         WallGrabChanged?.Invoke(on);
     }
+
 
     #endregion
 
@@ -733,6 +743,10 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private bool _dashing;
     private float _startedDashing;
     private float _nextDashTime;
+    public bool IsDashing() => _dashing;
+    public Vector2 GetDashDirection() => _dashVel.normalized;
+    public bool IsGrounded() => _grounded;
+    public void GiveBonusJump() => ResetAirJumps();
 
     private void CalculateDash()
     {
@@ -894,13 +908,27 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
             float wallVelocity;
             if (_frameInput.Move.y != 0)
+            {
                 wallVelocity = _frameInput.Move.y * Stats.WallClimbSpeed;
+                _wallStickCounter = Stats.WallStickTime;
+            }
             else
-                wallVelocity = Mathf.MoveTowards(Mathf.Min(Velocity.y, 0), -Stats.WallClimbSpeed, Stats.WallFallAcceleration * _delta);
+            {
+                if (_wallStickCounter > 0)
+                {
+                    wallVelocity = 0f;
+                    _wallStickCounter -= _delta;
+                }
+                else
+                {
+                    wallVelocity = Mathf.MoveTowards(Mathf.Min(Velocity.y, 0), -Stats.WallClimbSpeed, Stats.WallFallAcceleration * _delta);
+                }
+            }
 
             SetVelocity(new Vector2(_rb.velocity.x, wallVelocity));
             return;
         }
+
 
         if (_wasClimbingLadderThisFrame && ClimbingLadder)
         {
@@ -1022,7 +1050,7 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     }
 
 
-    private void SetVelocity(Vector2 newVel)
+    public void SetVelocity(Vector2 newVel)
     {
         _rb.velocity = newVel;
         Velocity = newVel;

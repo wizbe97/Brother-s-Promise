@@ -46,7 +46,7 @@ public class FusionLauncher : MonoBehaviour
         {
             GameMode = mode,
             SessionName = room,
-            SceneManager = sceneLoader
+            SceneManager = sceneLoader,
         });
 
         Debug.Log($"[FusionLauncher] Fusion started - Room: {room}, Mode: {mode}");

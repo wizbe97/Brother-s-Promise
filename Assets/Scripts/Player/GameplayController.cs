@@ -1,10 +1,10 @@
 using System;
+using System.Linq;
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Users;
-
+using Cinemachine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
@@ -237,6 +237,23 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private bool _cachedQueryMode, _cachedQueryTriggers;
     private GeneratedCharacterSize _character;
     private const float GRAVITY_SCALE = 1;
+
+    public override void Spawned()
+    {
+        if (!Object.HasInputAuthority && !Object.HasStateAuthority)
+            return;
+
+        // Only run on the client, not the server
+        CinemachineTargetGroup group = FindObjectOfType<CinemachineTargetGroup>();
+        if (group != null)
+        {
+            // Prevent duplicates
+            if (!group.m_Targets.Any(t => t.target == transform))
+            {
+                group.AddMember(transform, 1f, 2f);
+            }
+        }
+    }
 
     private void SetupCharacter()
     {
@@ -1146,6 +1163,8 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     #endregion
 }
+
+
 
 public enum JumpType
 {

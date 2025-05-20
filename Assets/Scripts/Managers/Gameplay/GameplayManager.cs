@@ -1,6 +1,7 @@
 using UnityEngine;
 using Fusion;
 using FusionUtilsEvents;
+using Cinemachine;
 using System.Linq;
 
 public class GameplayManager : NetworkBehaviour
@@ -24,7 +25,7 @@ public class GameplayManager : NetworkBehaviour
     public static GameplayManager Instance => _instance;
 
     private bool _isOnline;
-
+    private CinemachineTargetGroup _targetGroup;
 
     private void Awake()
     {
@@ -38,10 +39,13 @@ public class GameplayManager : NetworkBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-
     private void Start()
     {
         _isOnline = GameManager.Instance.IsOnline;
+
+        // Look for the Cinemachine Target Group in the scene
+        _targetGroup = FindObjectOfType<CinemachineTargetGroup>();
+
         if (!_isOnline)
             HandleOfflineSpawning();
     }
@@ -91,6 +95,7 @@ public class GameplayManager : NetworkBehaviour
                 spawnPoint.rotation,
                 player
             );
+
             index++;
         }
     }
@@ -107,10 +112,14 @@ public class GameplayManager : NetworkBehaviour
             var go = Instantiate(prefab, spawnPos, Quaternion.identity);
             var controller = go.GetComponent<GameplayController>();
             controller.InitializeInput(player.Device, player.SelectedCharacter);
+
+            // Add to Cinemachine Target Group
+            if (_targetGroup != null)
+            {
+                _targetGroup.AddMember(go.transform, 1f, 2f);
+            }
         }
     }
-
-
 
     private Transform GetSpawnPoint(int index)
     {

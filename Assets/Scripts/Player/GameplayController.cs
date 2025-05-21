@@ -244,15 +244,9 @@ public class GameplayController : NetworkBehaviour, IPlayerController
             return;
 
         // Only run on the client, not the server
-        CinemachineTargetGroup group = FindObjectOfType<CinemachineTargetGroup>();
-        if (group != null)
-        {
-            // Prevent duplicates
-            if (!group.m_Targets.Any(t => t.target == transform))
-            {
-                group.AddMember(transform, 1f, 2f);
-            }
-        }
+        var camRef = transform.Find("CinemachineCameraRef");
+        if (camRef != null)
+            camRef.gameObject.SetActive(Object.HasInputAuthority);
     }
 
     private void SetupCharacter()

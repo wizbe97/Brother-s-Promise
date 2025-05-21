@@ -1,8 +1,6 @@
 using UnityEngine;
 using Fusion;
 using FusionUtilsEvents;
-using Cinemachine;
-using System.Linq;
 
 public class GameplayManager : NetworkBehaviour
 {
@@ -25,7 +23,6 @@ public class GameplayManager : NetworkBehaviour
     public static GameplayManager Instance => _instance;
 
     private bool _isOnline;
-    private CinemachineTargetGroup _targetGroup;
 
     private void Awake()
     {
@@ -42,9 +39,6 @@ public class GameplayManager : NetworkBehaviour
     private void Start()
     {
         _isOnline = GameManager.Instance.IsOnline;
-
-        // Look for the Cinemachine Target Group in the scene
-        _targetGroup = FindObjectOfType<CinemachineTargetGroup>();
 
         if (!_isOnline)
             HandleOfflineSpawning();
@@ -63,13 +57,9 @@ public class GameplayManager : NetworkBehaviour
     private void SceneLoaded(PlayerRef _, NetworkRunner runner)
     {
         if (_isOnline)
-        {
             HandleOnlineSpawning(runner);
-        }
         else
-        {
             HandleOfflineSpawning();
-        }
     }
 
     private void HandleOnlineSpawning(NetworkRunner runner)
@@ -83,19 +73,13 @@ public class GameplayManager : NetworkBehaviour
         {
             var playerData = GameManager.Instance.GetPlayerData(player);
 
-            NetworkPrefabRef prefabToSpawn = playerData.SelectedCharacter == 0
+            var prefabToSpawn = playerData.SelectedCharacter == 0
                 ? brother1NetworkPrefab
                 : brother2NetworkPrefab;
 
-            Transform spawnPoint = GetSpawnPoint(index);
+            var spawnPoint = GetSpawnPoint(index);
 
-            var spawnedObject = runner.Spawn(
-                prefabToSpawn,
-                spawnPoint.position,
-                spawnPoint.rotation,
-                player
-            );
-
+            runner.Spawn(prefabToSpawn, spawnPoint.position, spawnPoint.rotation, player);
             index++;
         }
     }
@@ -106,18 +90,15 @@ public class GameplayManager : NetworkBehaviour
 
         foreach (var player in PlayerDataOffline.players)
         {
-            var prefab = (player.SelectedCharacter == 0) ? brother1OfflinePrefab : brother2OfflinePrefab;
-            var spawnPos = GetSpawnPoint(player.SelectedCharacter).position;
+            var prefab = player.SelectedCharacter == 0
+                ? brother1OfflinePrefab
+                : brother2OfflinePrefab;
 
+            var spawnPos = GetSpawnPoint(player.SelectedCharacter).position;
             var go = Instantiate(prefab, spawnPos, Quaternion.identity);
+
             var controller = go.GetComponent<GameplayController>();
             controller.InitializeInput(player.Device, player.SelectedCharacter);
-
-            // Add to Cinemachine Target Group
-            if (_targetGroup != null)
-            {
-                _targetGroup.AddMember(go.transform, 1f, 2f);
-            }
         }
     }
 

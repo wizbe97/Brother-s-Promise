@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Fusion;
 using System.Collections.Generic;
@@ -240,14 +241,41 @@ public class GameplayController : NetworkBehaviour, IPlayerController
 
     public override void Spawned()
     {
-        if (!Object.HasInputAuthority && !Object.HasStateAuthority)
-            return;
-
-        // Only run on the client, not the server
-        var camRef = transform.Find("CinemachineCameraRef");
-        if (camRef != null)
-            camRef.gameObject.SetActive(Object.HasInputAuthority);
+        StartCoroutine(RegisterWithCinemachineWhenReady());
     }
+
+    private IEnumerator RegisterWithCinemachineWhenReady()
+    {
+        yield return new WaitUntil(() =>
+            FindObjectsOfType<GameplayController>().Length >= 2 &&
+            FindObjectsOfType<GameplayController>().All(g => Mathf.Abs(g.transform.position.x) > 0.1f)
+        );
+        var targetGroup = FindObjectOfType<CinemachineTargetGroup>();
+        if (targetGroup != null && !IsAlreadyInGroup(targetGroup, transform))
+        {
+            targetGroup.AddMember(transform, 1f, 2f);
+            Debug.Log($"[Cinemachine] Added {name} to target group at pos {transform.position}");
+        }
+
+        CinemachineVirtualCamera virtualCam = FindObjectOfType<CinemachineVirtualCamera>();
+        if (virtualCam != null)
+        {
+            virtualCam.OnTargetObjectWarped(virtualCam.Follow, Vector3.zero);
+            virtualCam.ForceCameraPosition(virtualCam.State.FinalPosition, virtualCam.State.FinalOrientation);
+        }
+
+    }
+
+    private bool IsAlreadyInGroup(CinemachineTargetGroup group, Transform t)
+    {
+        foreach (var m in group.m_Targets)
+        {
+            if (m.target == t)
+                return true;
+        }
+        return false;
+    }
+
 
     private void SetupCharacter()
     {

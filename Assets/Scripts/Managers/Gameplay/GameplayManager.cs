@@ -70,6 +70,7 @@ public class GameplayManager : NetworkBehaviour
         {
             HandleOfflineSpawning();
         }
+        
     }
 
     private void HandleOnlineSpawning(NetworkRunner runner)
@@ -97,6 +98,7 @@ public class GameplayManager : NetworkBehaviour
             );
 
             index++;
+        
         }
     }
 

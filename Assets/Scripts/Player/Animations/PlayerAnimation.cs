@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using Fusion;
 
-public class PlayerAnimator : NetworkBehaviour
+public class PlayerAnimation : NetworkBehaviour
 {
     public enum PlayerStates
     {
@@ -34,13 +34,8 @@ public class PlayerAnimator : NetworkBehaviour
 
     private void Update()
     {
-        if (_controller == null || animator == null) return;
-
-        // Always run offline logic
-        if (!IsOnline)
-        {
-            UpdateAnimationState();
-        }
+        if (_controller == null || animator == null || IsOnline) return;
+        UpdateAnimationState();
     }
 
     public override void FixedUpdateNetwork()
@@ -74,7 +69,6 @@ public class PlayerAnimator : NetworkBehaviour
     {
         if (!IsOnline || _controller == null || animator == null) return;
 
-        // Use same animation names as offline
         if (_currentState != NetworkState)
         {
             _currentState = NetworkState;
@@ -84,7 +78,6 @@ public class PlayerAnimator : NetworkBehaviour
         FlipSprite();
     }
 
-    // === YOUR ORIGINAL OFFLINE METHOD ===
     private void UpdateAnimationState()
     {
         FlipSprite();
@@ -137,13 +130,9 @@ public class PlayerAnimator : NetworkBehaviour
     private void FlipSprite()
     {
         if (GameManager.Instance != null && GameManager.Instance.IsOnline)
-        {
-            // Use the networked FacingRight value
             visualTransform.rotation = Quaternion.Euler(0f, FacingRight ? 0f : 180f, 0f);
-        }
         else
         {
-            // Use local input for offline or no GameManager
             float x = _controller.Input.x;
 
             if (x > 0.01f)

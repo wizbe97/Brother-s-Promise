@@ -201,7 +201,10 @@ public class PlayerStats : ScriptableObject
         var potentialPlayer = FindObjectsOfType<GameplayController>();
         foreach (var player in potentialPlayer)
         {
-            player.OnValidate();
+#if UNITY_EDITOR
+            if (Application.isPlaying) player.OnValidate();
+#endif
+
         }
     }
 }

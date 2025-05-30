@@ -76,13 +76,14 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     #region Loop
 
     private float _delta, _time;
-    bool isOnline;
+    bool isOnline = false;
     private OfflinePlayerInput _offlinePlayerInput;
 
     private void Awake()
     {
         _constantForce = GetComponent<ConstantForce2D>();
-        isOnline = GameManager.Instance.IsOnline;
+        if (GameManager.Instance != null)
+            isOnline = GameManager.Instance.IsOnline;
         SetupCharacter();
     }
     public void InitializeInput(InputDevice device, int selectedCharacter)
@@ -114,7 +115,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     {
         if (!isOnline)
             GatherOfflineInput();
-
     }
 
     private void FixedUpdate()

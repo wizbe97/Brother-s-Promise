@@ -3,6 +3,7 @@ using Fusion;
 using FusionUtilsEvents;
 using Cinemachine;
 using System.Linq;
+using UnityEngine.InputSystem;
 
 public class GameplayManager : NetworkBehaviour
 {
@@ -41,14 +42,23 @@ public class GameplayManager : NetworkBehaviour
 
     private void Start()
     {
-        _isOnline = GameManager.Instance.IsOnline;
+        if (GameManager.Instance != null)
+            _isOnline = GameManager.Instance.IsOnline;
 
-        // Look for the Cinemachine Target Group in the scene
         _targetGroup = FindObjectOfType<CinemachineTargetGroup>();
+
+#if UNITY_EDITOR
+        if (GameManager.Instance == null)
+        {
+            DebugSpawnPlayers();
+            return;
+        }
+#endif
 
         if (!_isOnline)
             HandleOfflineSpawning();
     }
+
 
     private void OnEnable()
     {
@@ -63,14 +73,9 @@ public class GameplayManager : NetworkBehaviour
     private void SceneLoaded(PlayerRef _, NetworkRunner runner)
     {
         if (_isOnline)
-        {
             HandleOnlineSpawning(runner);
-        }
         else
-        {
             HandleOfflineSpawning();
-        }
-
     }
 
     private void HandleOnlineSpawning(NetworkRunner runner)
@@ -126,6 +131,52 @@ public class GameplayManager : NetworkBehaviour
             }
         }
     }
+
+    private void DebugSpawnPlayers()
+    {
+#if UNITY_EDITOR
+        var keyboard = Keyboard.current;
+        var gamepad = Gamepad.all.FirstOrDefault();
+
+        if (keyboard == null || gamepad == null)
+            return;
+
+        // Manually create offline players (skips the LobbyOffline scene)
+        PlayerDataOffline.players.Clear();
+
+        PlayerDataOffline.players.Add(new OfflinePlayer
+        {
+            Device = gamepad,
+            SelectedCharacter = 0,
+            DisplayName = "Gamepad Debug"
+        });
+
+        PlayerDataOffline.players.Add(new OfflinePlayer
+        {
+            Device = keyboard,
+            SelectedCharacter = 1,
+            DisplayName = "Keyboard Debug"
+        });
+
+        // Manually spawn and initialize the players
+        foreach (var player in PlayerDataOffline.players)
+        {
+            GameObject prefab = player.SelectedCharacter == 0 ? brother1OfflinePrefab : brother2OfflinePrefab;
+            Vector3 spawnPos = GetSpawnPoint(player.SelectedCharacter).position;
+
+            GameObject go = Instantiate(prefab, spawnPos, Quaternion.identity);
+
+            var controller = go.GetComponent<GameplayController>();
+            if (controller != null)
+                controller.InitializeInput(player.Device, player.SelectedCharacter);
+
+            if (_targetGroup != null)
+                _targetGroup.AddMember(go.transform, 1f, 2f);
+        }
+#endif
+    }
+
+
 
     private Transform GetSpawnPoint(int index)
     {

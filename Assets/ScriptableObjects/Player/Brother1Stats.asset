@@ -21,7 +21,7 @@ MonoBehaviour:
   CharacterSize:
     Height: 2.26
     Width: 1.12
-    StepHeight: 1
+    StepHeight: 0.2
     CrouchHeight: 1.05
     RayInset: 0.1
   VerticalDeadZoneThreshold: 0.3
@@ -37,7 +37,7 @@ MonoBehaviour:
   ExtraConstantGravity: 25
   BufferedJumpTime: 0.15
   CoyoteTime: 0.15
-  JumpPower: 12
+  JumpPower: 13.5
   EndJumpEarlyExtraForceMultiplier: 3.25
   MaxAirJumps: 0
   UseApexControl: 1

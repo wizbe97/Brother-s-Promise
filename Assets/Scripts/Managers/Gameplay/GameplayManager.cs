@@ -70,7 +70,7 @@ public class GameplayManager : NetworkBehaviour
         {
             HandleOfflineSpawning();
         }
-        
+
     }
 
     private void HandleOnlineSpawning(NetworkRunner runner)
@@ -96,10 +96,14 @@ public class GameplayManager : NetworkBehaviour
                 spawnPoint.rotation,
                 player
             );
-
+            // Add to Cinemachine Target Group
+            if (_targetGroup != null)
+            {
+                _targetGroup.AddMember(spawnedObject.transform, 1f, 2f);
+            }
             index++;
-        
         }
+
     }
 
     private void HandleOfflineSpawning()

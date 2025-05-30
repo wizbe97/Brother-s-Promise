@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
-using System.Linq;
+
 using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Cinemachine;
 
 
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(CapsuleCollider2D))]
@@ -238,44 +236,6 @@ public class GameplayController : NetworkBehaviour, IPlayerController
     private bool _cachedQueryMode, _cachedQueryTriggers;
     private GeneratedCharacterSize _character;
     private const float GRAVITY_SCALE = 1;
-
-    public override void Spawned()
-    {
-        StartCoroutine(RegisterWithCinemachineWhenReady());
-    }
-
-    private IEnumerator RegisterWithCinemachineWhenReady()
-    {
-        yield return new WaitUntil(() =>
-            FindObjectsOfType<GameplayController>().Length >= 2 &&
-            FindObjectsOfType<GameplayController>().All(g => Mathf.Abs(g.transform.position.x) > 0.1f)
-        );
-        var targetGroup = FindObjectOfType<CinemachineTargetGroup>();
-        if (targetGroup != null && !IsAlreadyInGroup(targetGroup, transform))
-        {
-            targetGroup.AddMember(transform, 1f, 2f);
-            Debug.Log($"[Cinemachine] Added {name} to target group at pos {transform.position}");
-        }
-
-        CinemachineVirtualCamera virtualCam = FindObjectOfType<CinemachineVirtualCamera>();
-        if (virtualCam != null)
-        {
-            virtualCam.OnTargetObjectWarped(virtualCam.Follow, Vector3.zero);
-            virtualCam.ForceCameraPosition(virtualCam.State.FinalPosition, virtualCam.State.FinalOrientation);
-        }
-
-    }
-
-    private bool IsAlreadyInGroup(CinemachineTargetGroup group, Transform t)
-    {
-        foreach (var m in group.m_Targets)
-        {
-            if (m.target == t)
-                return true;
-        }
-        return false;
-    }
-
 
     private void SetupCharacter()
     {
